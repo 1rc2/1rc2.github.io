@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#faf9f7">
+<title>芙伊app 官方下载 - 最新版 APK 安装包</title>
+<meta name="description" content="芙伊app 官方下载页。自动同步 GitHub 最新版本，直接下载安卓 APK 安装包，安全免费。">
+<meta name="keywords" content="芙伊app,芙伊,芙伊app下载,芙伊app安卓版,APK下载">
+<meta name="author" content="1rc2">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://1rc2.github.io/">
+<!-- 分享到微信/QQ/朋友圈时显示 -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="芙伊app 官方下载 - 最新版 APK">
+<meta property="og:description" content="芙伊app 官方下载页，自动同步最新版本，直接下载安卓 APK 安装包。">
+<meta property="og:url" content="https://1rc2.github.io/">
+<meta name="twitter:card" content="summary">
+<!-- 结构化数据：帮助搜索引擎识别为"应用下载页" -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "芙伊app",
+  "url": "https://1rc2.github.io/",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Android",
+  "description": "芙伊app 官方安卓客户端，自动同步最新版本 APK 安装包。",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+<!-- 预连接：减少下载跳转耗时 -->
+<link rel="preconnect" href="https://api.github.com">
+<link rel="preconnect" href="https://github.com">
+<link rel="preconnect" href="https://objects.githubusercontent.com">
+<style>
+  :root{
+    --bg:#faf9f7;
+    --card:#ffffff;
+    --ink:#191512;
+    --muted:#746b62;
+    --line:#e9e2d8;
+    --accent:#ff5c1f;
+    --accent-deep:#e64a10;
+    --ok:#1f9d55;
+    --warn:#c2562b;
+    --radius:18px;
+    --shadow:0 1px 2px rgba(25,21,18,.04),0 8px 24px rgba(25,21,18,.06);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(900px 420px at 85% -10%, rgba(255,92,31,.08), transparent 60%),
+      radial-gradient(700px 380px at -10% 0%, rgba(255,92,31,.05), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  a{color:inherit}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+
+  /* 顶栏 */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    backdrop-filter:blur(10px);
+    background:rgba(250,249,247,.85);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{
+    display:flex;align-items:center;justify-content:space-between;
+    height:58px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:.01em}
+  .brand-mark{
+    width:28px;height:28px;border-radius:8px;background:var(--ink);
+    display:grid;place-items:center;color:#fff;
+  }
+  .brand-mark svg{width:15px;height:15px}
+  .gh-link{
+    font-size:13px;color:var(--muted);text-decoration:none;
+    display:inline-flex;align-items:center;gap:5px;
+    padding:7px 12px;border:1px solid var(--line);border-radius:999px;
+    transition:border-color .2s,color .2s;
+  }
+  .gh-link:hover{color:var(--accent);border-color:var(--accent)}
+
+  /* 主内容 */
+  main{padding:48px 0 72px}
+  .hero{padding:26px 0 34px}
+
+  /* 应用切换条（多应用） */
+  .app-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
+  .tab{
+    padding:9px 20px;border:1px solid var(--line);border-radius:999px;
+    font-size:14px;font-weight:600;background:var(--card);color:var(--muted);
+    cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .15s;
+  }
+  .tab:hover{color:var(--accent);border-color:var(--accent)}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12px;color:var(--muted);
+    background:var(--card);border:1px solid var(--line);
+    padding:6px 12px;border-radius:999px;
+  }
+  .pill b{color:var(--accent);font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-weight:700}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+  .hero h1{
+    margin-top:18px;font-size:clamp(30px,6vw,46px);
+    font-weight:800;letter-spacing:-.03em;line-height:1.1;
+  }
+  .hero p{margin-top:12px;color:var(--muted);font-size:15px;line-height:1.7;max-width:56ch}
+
+  /* 卡片 */
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:26px 28px;margin-top:20px;
+  }
+  .card-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;
+  }
+  .tag{
+    font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
+    font-weight:700;font-size:19px;letter-spacing:-.02em;
+  }
+  .date{font-size:12px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+  .release-name{margin-top:4px;font-size:14px;color:var(--muted)}
+
+  .notes{margin-top:18px;font-size:14px;line-height:1.8;color:#3d3731}
+  .notes p{margin:0 0 10px}
+  .notes h3{margin:16px 0 8px;font-size:14px}
+  .notes ul{margin:0 0 10px;padding-left:18px}
+  .notes li{margin:2px 0}
+  .notes code{
+    font-family:ui-monospace,Consolas,monospace;font-size:.9em;
+    background:#f3efe9;border:1px solid var(--line);border-radius:5px;padding:1px 5px;
+  }
+  .notes pre{
+    background:#191512;color:#f5f0ea;border-radius:10px;
+    padding:12px 14px;margin:0 0 12px;overflow-x:auto;font-size:12.5px;line-height:1.6;
+  }
+  .notes pre code{background:none;border:none;padding:0;color:inherit}
+  .notes .quote{border-left:3px solid var(--accent);padding-left:12px;color:var(--muted)}
+  .notes a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+
+  /* 资产按钮 */
+  .assets{display:grid;gap:10px;margin-top:22px}
+  .asset-btn{
+    display:flex;align-items:center;gap:14px;
+    text-decoration:none;color:var(--ink);
+    border:1px solid var(--line);border-radius:14px;
+    padding:13px 16px;background:#fdfcfb;
+    transition:transform .15s,border-color .15s,box-shadow .15s;
+  }
+  .asset-btn:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
+  .asset-icon{width:38px;height:38px;border-radius:10px;flex:none;display:grid;place-items:center}
+  .asset-icon svg{width:21px;height:21px}
+  .asset-meta{flex:1;min-width:0}
+  .asset-meta .n{font-size:14px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .asset-meta .s{font-size:12px;color:var(--muted);display:block;margin-top:2px;font-family:ui-monospace,Consolas,monospace}
+  .asset-go{flex:none;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600}
+  .asset-go svg{width:15px;height:15px;transition:transform .2s}
+  .asset-btn:hover .asset-go svg{transform:translateX(3px)}
+
+  /* 主下载按钮（最新版第一个资产） */
+  .btn-download{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    background:var(--accent);color:#fff;text-decoration:none;
+    font-size:16px;font-weight:700;
+    padding:15px 26px;border-radius:14px;margin-top:22px;
+    box-shadow:0 10px 26px rgba(255,92,31,.3);
+    transition:background .2s,transform .15s,box-shadow .2s;
+  }
+  .btn-download:hover{background:var(--accent-deep);transform:translateY(-2px)}
+  .btn-download svg{width:19px;height:19px}
+
+  /* 历史版本 */
+  .section-title{
+    margin:52px 0 4px;font-size:13px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:10px;
+  }
+  .section-title::after{content:"";flex:1;height:1px;background:var(--line)}
+  .history-item{padding:20px 26px}
+  .history-item .card-head{margin-bottom:10px}
+  .history-item .tag{font-size:15px}
+  .history-intro{
+    font-size:13.5px;color:#4a443d;line-height:1.7;margin:6px 0 14px;
+  }
+  details.history-detail{margin-top:4px}
+  details.history-detail summary{
+    cursor:pointer;font-size:13px;color:var(--accent);font-weight:600;
+    list-style:none;display:inline-flex;align-items:center;gap:6px;user-select:none;
+  }
+  details.history-detail summary::-webkit-details-marker{display:none}
+  details.history-detail summary .arrow{transition:transform .2s}
+  details[open] summary .arrow{transform:rotate(90deg)}
+  details.history-detail .notes{margin-top:12px;padding-top:14px;border-top:1px dashed var(--line)}
+
+  /* 骨架屏 */
+  .skeleton{animation:shimmer 1.4s ease-in-out infinite}
+  @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.45}}
+  .sk-line{height:14px;border-radius:6px;background:var(--line);margin-bottom:10px}
+  .sk-block{height:150px;border-radius:var(--radius);background:var(--line)}
+
+  /* 状态提示 */
+  .state{
+    text-align:center;padding:60px 24px;color:var(--muted);font-size:14px;line-height:1.9;
+  }
+  .state .big{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .state .err{color:var(--warn);font-size:13px}
+  .retry-btn{
+    margin-top:18px;background:none;border:1px solid var(--line);color:var(--ink);
+    font-size:13px;font-weight:600;padding:9px 22px;border-radius:999px;cursor:pointer;
+    transition:border-color .2s,color .2s;
+  }
+  .retry-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .state code{font-family:ui-monospace,Consolas,monospace;background:#f3efe9;border-radius:5px;padding:1px 6px}
+
+  /* 入场动画 */
+  .reveal{opacity:0;transform:translateY(14px);animation:rise .55s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  footer{
+    border-top:1px solid var(--line);padding:26px 0 34px;text-align:center;
+    font-size:12.5px;color:var(--muted);
+  }
+  footer .mirror-note{margin-top:6px;font-size:12px}
+
+  @media (max-width:560px){
+    .card{padding:20px 18px}
+    .asset-btn{padding:11px 13px}
+    .assets{gap:8px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>
+      </span>
+      <span id="brand-name">APP 下载中心</span>
+    </div>
+    <a class="gh-link" id="gh-link" href="#" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div id="app-tabs" class="app-tabs" hidden></div>
+    <span class="pill"><span class="dot"></span><span>数据源：GitHub Releases</span></span>
+    <h1>下载 <span id="app-name">芙伊app</span></h1>
+    <p>官方下载中心，自动获取最新版本，安装包直连 GitHub 官方下载地址。</p>
+  </section>
+
+  <!-- 最新版本 -->
+  <section id="latest"></section>
+
+  <!-- 历史版本 -->
+  <section id="history" hidden></section>
+</main>
+
+<footer>
+  <div>Powered by GitHub Releases API · 数据自动同步</div>
+  <div class="mirror-note" id="mirror-note" hidden>已启用下载加速镜像</div>
+</footer>
+
+<noscript><p style="text-align:center;padding:40px">本页面需要启用 JavaScript 才能拉取下载信息。</p></noscript>
+
+<script>
+"use strict";
+
+/* ============================================================
+ * 配置区 —— 发布前只需改这里
+ * ============================================================ */
+const CONFIG = {
+  /* 必改：你的 GitHub 用户名 */
+  user: "1rc2",
+
+  /* 品牌名（页面标题/主标题/搜索关键词），相当于"下载中心"的名称 */
+  brand: "芙伊app",
+
+  /* 应用列表：每个应用对应一个仓库的 Releases，可任意增删。
+     品牌下可有多个应用；当前为 1 个（芙伊app 安卓版）。 */
+  apps: [
+    {
+      repo: "sjkglxt",             // 仓库名（不含用户名）
+      appName: "芙伊app",          // 切换条上显示的应用名（多应用时用于区分）
+      color: "#ff5c1f"             // 该应用的主题强调色
+    }
+  ],
+
+  releaseCount: 3,                 // 每个应用展示的 Release 数量（含最新版），即"最近三个"
+  cacheTTL: 10 * 60 * 1000,        // 本地缓存 10 分钟，重复访问免请求、更快
+  mirror: ""                       // 可选：国内加速镜像前缀（如 "https://ghproxy.net/"）
+                                   // 留空 = 直连 GitHub 官方地址
+};
+/* ============================================================ */
+
+const $ = id => document.getElementById(id);
+
+/* ---------- 平台识别（按文件后缀匹配，可自行增删） ---------- */
+const PLATFORMS = [
+  { key: "android", name: "Android", suffix: ["apk", "aab"], color: "#3ddc84", bg: "#e8f9f0",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 1.1-.9 2-2 2s-2-.9-2-2v-5c0-1.1.9-2 2-2s2 .9 2 2v5zm2-4.5A2.5 2.5 0 0 1 10.5 11h3A2.5 2.5 0 0 1 16 13.5v5a2.5 2.5 0 0 1-2.5 2.5H14v2a1.5 1.5 0 0 1-3 0v-2h-2v2a1.5 1.5 0 0 1-3 0v-2h-.5A2.5 2.5 0 0 1 3 18.5v-5zm1-4.6V8a4 4 0 0 1 8 0v.9h-2V8a2 2 0 0 0-4 0v.9H9z"/></svg>' },
+  { key: "windows", name: "Windows", suffix: ["exe", "msi"], color: "#0078d4", bg: "#e6f1fa",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.8 4.4v7.1H3V5.5zm0 13 7.8 1.1v-7.1H3v6zm8.7 1.2L21 21V12.6h-9.3v7.1zm0-15.4V11.4H21V3l-9.3 1.3z"/></svg>' },
+  { key: "macos", name: "macOS", suffix: ["dmg", "pkg"], color: "#a2aaad", bg: "#eef0f1",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.7 2.2-4 2.3-4-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.6-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.5-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.4-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM14 5.5c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.5-.6 3.3-1.5z"/></svg>' },
+  { key: "linux", name: "Linux", suffix: ["deb", "rpm", "appimage", "tar.gz", "tgz", "tar.xz", "tar.bz2"], color: "#f0af41", bg: "#fdf3e0",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 3 6 3 11c0 2.8 1.4 5.3 3.6 6.9l.5 2.6c.1.6.6 1 1.2 1h7.4c.6 0 1.1-.4 1.2-1l.5-2.6C19.6 16.3 21 13.8 21 11c0-5-4-9-9-9zm-1.5 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm3 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM8.5 14.8c.9 1 2.1 1.6 3.5 1.6s2.6-.6 3.5-1.6c-.2 1.6-1.5 2.8-3.5 2.8s-3.3-1.2-3.5-2.8z"/></svg>' },
+  { key: "ios", name: "iOS", suffix: ["ipa"], color: "#5f6bf0", bg: "#eceefc",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.7 2.2-4 2.3-4-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.6-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.5-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.4-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM14 5.5c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.5-.6 3.3-1.5z"/></svg>' },
+];
+
+/* ---------- 工具函数 ---------- */
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function fmtSize(bytes) {
+  if (bytes == null) return "—";
+  const u = ["B", "KB", "MB", "GB"];
+  let v = bytes, i = 0;
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+  return parseFloat(v.toFixed(i === 0 ? 0 : 1)) + " " + u[i];
+}
+function fmtNum(n) {
+  if (n == null) return "";
+  if (n >= 1e8) return (n / 1e8).toFixed(1) + " 亿";
+  if (n >= 1e4) return (n / 1e4).toFixed(1) + " 万";
+  return n.toLocaleString();
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function detectPlatform(filename) {
+  const lower = filename.toLowerCase();
+  for (const p of PLATFORMS) {
+    if (p.suffix.some(s => lower.endsWith("." + s))) return p;
+  }
+  return null;
+}
+
+/* ---------- Markdown 轻量渲染（代码块/列表/引用/标题/加粗/行内代码/链接） ---------- */
+function inlineMd(s) {
+  s = escapeHtml(s);
+  s = s.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/https?:\/\/[^\s<]+/g, m => '<a href="' + m + '" target="_blank" rel="noopener">' + m + "</a>");
+  return s;
+}
+function renderMd(src) {
+  if (!src) return "";
+  const lines = String(src).split("\n");
+  let html = "", inCode = false, listOpen = false;
+  const closeList = () => { if (listOpen) { html += "</ul>"; listOpen = false; } };
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (/^```/.test(line)) {
+      closeList();
+      if (inCode) { html += "</code></pre>"; inCode = false; }
+      else { html += "<pre><code>"; inCode = true; }
+      continue;
+    }
+    if (inCode) { html += escapeHtml(line) + "\n"; continue; }
+    if (/^###?\s/.test(line)) { closeList(); html += "<h3>" + inlineMd(line.replace(/^#+\s/, "")) + "</h3>"; continue; }
+    if (/^[-*]\s/.test(line)) {
+      if (!listOpen) { html += "<ul>"; listOpen = true; }
+      html += "<li>" + inlineMd(line.replace(/^[-*]\s/, "")) + "</li>";
+      continue;
+    }
+    if (/^>/.test(line)) { closeList(); html += '<p class="quote">' + inlineMd(line.replace(/^>\s?/, "")) + "</p>"; continue; }
+    if (!line.trim()) { closeList(); continue; }
+    closeList();
+    html += "<p>" + inlineMd(line) + "</p>";
+  }
+  if (inCode) html += "</code></pre>";
+  closeList();
+  return html;
+}
+
+/* ---------- 缓存（按仓库独立缓存，加速重复访问） ---------- */
+function readCache(repo) {
+  try {
+    const raw = localStorage.getItem("gh-release:" + repo);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (Date.now() - c.ts < CONFIG.cacheTTL) return c.data;
+  } catch (e) {}
+  return null;
+}
+function writeCache(repo, data) {
+  try { localStorage.setItem("gh-release:" + repo, JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
+}
+
+/* ---------- 获取 Releases ---------- */
+async function fetchReleases(repo) {
+  const url = "https://api.github.com/repos/" + repo + "/releases?per_page=" + CONFIG.releaseCount;
+  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" });
+  if (res.status === 403 || res.status === 429) {
+    const err = new Error("rate-limit");
+    err.rateLimit = true;
+    throw err;
+  }
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const list = await res.json();
+  // 过滤草稿与预发布，按发布时间倒序，去重 tag
+  const seen = new Set();
+  const releases = list
+    .filter(r => !r.draft && !r.prerelease)
+    .filter(r => (seen.has(r.tag_name) ? false : (seen.add(r.tag_name), true)))
+    .sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+  return releases.slice(0, CONFIG.releaseCount);
+}
+
+/* ---------- 渲染 ---------- */
+function downloadUrl(asset) {
+  const u = asset.browser_download_url;
+  return CONFIG.mirror ? CONFIG.mirror + u : u;
+}
+function assetButton(asset, primary) {
+  const p = detectPlatform(asset.name);
+  const btn = primary
+    ? '<a class="btn-download" href="' + downloadUrl(asset) + '" download rel="noopener">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>' +
+      "下载 " + (p ? p.name : "安装包") + " · " + fmtSize(asset.size) + "</a>"
+    : '<a class="asset-btn" href="' + downloadUrl(asset) + '" download rel="noopener">' +
+      '<span class="asset-icon" style="color:' + (p ? p.color : "#6b6258") + ";background:" + (p ? p.bg : "#f0ede8") + '">' +
+      (p ? p.icon : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>') + "</span>" +
+      '<span class="asset-meta"><span class="n">' + escapeHtml(asset.name) + "</span>" +
+      '<span class="s">' + (p ? p.name + " · " : "") + fmtSize(asset.size) + " · 下载 " + fmtNum(asset.download_count) + "</span></span>" +
+      '<span class="asset-go">下载<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span></a>';
+  return btn;
+}
+function releaseNotes(r) {
+  if (!r.body) return '<p class="quote">该版本未填写更新说明。</p>';
+  return renderMd(r.body);
+}
+function assetList(r) {
+  if (!r.assets.length) return '<p style="font-size:13px;color:var(--muted);margin-top:18px">此版本未上传安装包（请到 Release 页面查看）。</p>';
+  return r.assets.map(a => assetButton(a, false)).join("");
+}
+function buildLatest(r) {
+  const p = r.assets.find(a => detectPlatform(a.name));
+  return '<div class="card reveal">' +
+    '<div class="card-head"><span class="tag">' + escapeHtml(r.tag_name) + "</span>" +
+    '<span class="date">发布于 ' + fmtDate(r.published_at) + "</span></div>" +
+    (r.name && r.name !== r.tag_name ? '<div class="release-name">' + escapeHtml(r.name) + "</div>" : "") +
+    '<div class="notes">' + releaseNotes(r) + "</div>" +
+    (p ? assetButton(p, true) : "") +
+    '<div class="assets">' + assetList(r) + "</div>" +
+    "</div>";
+}
+function buildHistory(releases) {
+  const older = releases.slice(1);
+  if (!older.length) return "";
+  const items = older.map((r, i) =>
+    '<div class="card history-item reveal" style="animation-delay:' + (i * 60) + "ms\">" +
+    '<div class="card-head"><span class="tag">' + escapeHtml(r.tag_name) + "</span>" +
+    '<span class="date">发布于 ' + fmtDate(r.published_at) + "</span></div>" +
+    '<div class="history-intro">' + (r.body ? inlineMd(r.body.split("\n").slice(0, 3).join(" ").slice(0, 90) + (r.body.length > 90 ? "…" : "")) : "未填写更新说明。") + "</div>" +
+    '<div class="assets">' + assetList(r) + "</div>" +
+    '<details class="history-detail"><summary><span class="arrow">▶</span>查看完整更新说明</summary>' +
+    '<div class="notes">' + releaseNotes(r) + "</div></details>" +
+    "</div>"
+  ).join("");
+  return '<div class="section-title reveal">历史版本</div>' + items;
+}
+function skeletonHTML() {
+  return '<div class="card skeleton"><div class="sk-line" style="width:34%"></div><div class="sk-line" style="width:72%"></div>' +
+    '<div class="sk-block"></div><div class="sk-line" style="width:60%;margin-top:16px"></div></div>';
+}
+function stateHTML(kind, detail) {
+  let html = '<div class="card state reveal">';
+  if (kind === "empty") {
+    html += '<div class="big">仓库还没有 Release</div>' +
+      '去 GitHub 发布第一个版本后，这里会自动出现下载按钮。<br>' +
+      '<a class="retry-btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="https://github.com/' + currentRepo + '/releases/new" target="_blank" rel="noopener">前往发布 Release</a>';
+  } else if (kind === "error") {
+    html += '<div class="big">获取版本信息失败</div>';
+    html += detail.rateLimit
+      ? '<span class="err">GitHub API 请求达到频率限制，请稍后再试，或到 <code>github.com/settings/tokens</code> 生成 Token 提升额度。</span>'
+      : '<span class="err">' + escapeHtml(detail.message || "网络异常，请检查网络后重试。") + "</span>";
+    html += '<button class="retry-btn" onclick="load()">重试</button>';
+  }
+  return html + "</div>";
+}
+
+/* ---------- 主流程 ---------- */
+let currentRepo = "";
+
+function repoOf(i) { return CONFIG.user + "/" + CONFIG.apps[i].repo; }
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  return "rgb(" + Math.round((n >> 16) * f) + "," + Math.round(((n >> 8) & 255) * f) + "," + Math.round((n & 255) * f) + ")";
+}
+
+function render(releases, stale) {
+  const latestEl = $("latest");
+  const historyEl = $("history");
+  if (!releases.length) {
+    latestEl.innerHTML = stateHTML("empty");
+    historyEl.hidden = true;
+    return;
+  }
+  latestEl.innerHTML = buildLatest(releases[0]) + (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px">网络暂不可用，以上为缓存数据</p>' : "");
+  historyEl.innerHTML = buildHistory(releases);
+  historyEl.hidden = releases.length < 2;
+}
+
+async function load() {
+  const latestEl = $("latest");
+  const historyEl = $("history");
+  const repo = currentRepo;
+  const cached = readCache(repo);
+  if (cached && cached.length) render(cached, false);
+  else { latestEl.innerHTML = skeletonHTML(); historyEl.hidden = true; }
+
+  try {
+    const releases = await fetchReleases(repo);
+    if (repo !== currentRepo) return;   // 已切换应用，丢弃过期结果
+    writeCache(repo, releases);
+    render(releases, false);
+  } catch (err) {
+    if (repo !== currentRepo) return;
+    if (cached && cached.length) {
+      render(cached, true);
+    } else {
+      latestEl.innerHTML = stateHTML("error", {
+        rateLimit: !!err.rateLimit,
+        message: err.rateLimit ? "" : (err.message || "网络异常")
+      });
+      historyEl.hidden = true;
+    }
+  }
+}
+
+/* ---------- 应用切换 ---------- */
+function renderTabs() {
+  const tabsEl = $("app-tabs");
+  tabsEl.innerHTML = CONFIG.apps.map((a, i) =>
+    '<button type="button" class="tab' + (i === 0 ? " active" : "") + '" data-i="' + i + '">' + escapeHtml(a.appName) + "</button>"
+  ).join("");
+  tabsEl.addEventListener("click", e => {
+    const b = e.target.closest(".tab");
+    if (b) selectApp(+b.dataset.i);
+  });
+}
+
+function selectApp(i) {
+  const a = CONFIG.apps[i];
+  document.querySelectorAll("#app-tabs .tab").forEach((t, ti) => t.classList.toggle("active", ti === i));
+  document.documentElement.style.setProperty("--accent", a.color);          // 每个应用独立主题色
+  document.documentElement.style.setProperty("--accent-deep", shade(a.color, 0.85));
+  $("gh-link").href = "https://github.com/" + repoOf(i);
+  currentRepo = repoOf(i);
+  load();
+}
+
+/* ---------- 初始化 ---------- */
+function boot() {
+  if (!CONFIG.apps || !CONFIG.apps.length) {
+    $("latest").innerHTML = '<div class="card state"><div class="big">请先在 CONFIG.apps 中配置至少一个应用</div></div>';
+    $("history").hidden = true;
+    return;
+  }
+  $("app-name").textContent = CONFIG.brand || CONFIG.apps[0].appName;
+  $("brand-name").textContent = (CONFIG.brand || CONFIG.apps[0].appName) + " 下载中心";
+  document.title = (CONFIG.brand || CONFIG.apps[0].appName) + " 官方下载";
+  if (CONFIG.mirror) $("mirror-note").hidden = false;
+  if (CONFIG.apps.length > 1) renderTabs();   // 仅多应用时显示切换条
+  selectApp(0);
+}
+document.addEventListener("DOMContentLoaded", boot);
+</script>
+</body>
+</html>

@@ -289,7 +289,8 @@ const CONFIG = {
   brand: "芙伊app",
 
   /* 应用列表：每个应用对应一个仓库的 Releases，可任意增删。
-     品牌下可有多个应用，顶部可切换；当前仅 1 个。 */
+     后续新增应用：复制下面一项，改 repo（GitHub 仓库名）、
+     appName（显示名）、color（主题色）即可，顶部切换条自动出现。 */
   apps: [
     {
       repo: "sjkglxt",             // 仓库名（不含用户名）
@@ -548,6 +549,7 @@ async function load() {
 /* ---------- 应用切换 ---------- */
 function renderTabs() {
   const tabsEl = $("app-tabs");
+  tabsEl.hidden = false;
   tabsEl.innerHTML = CONFIG.apps.map((a, i) =>
     '<button type="button" class="tab' + (i === 0 ? " active" : "") + '" data-i="' + i + '">' + escapeHtml(a.appName) + "</button>"
   ).join("");
@@ -578,7 +580,7 @@ function boot() {
   $("brand-name").textContent = (CONFIG.brand || CONFIG.apps[0].appName) + " 下载中心";
   document.title = (CONFIG.brand || CONFIG.apps[0].appName) + " 官方下载";
   if (CONFIG.mirror) $("mirror-note").hidden = false;
-  if (CONFIG.apps.length > 1) renderTabs();   // 仅多应用时显示切换条
+  renderTabs();   // 始终显示应用切换条（当前 1 个，后续加应用即可切换）
   selectApp(0);
 }
 document.addEventListener("DOMContentLoaded", boot);

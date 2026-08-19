@@ -257,7 +257,7 @@
   <section class="hero">
     <div id="app-tabs" class="app-tabs" hidden></div>
     <span class="pill"><span class="dot"></span><span>数据源：GitHub Releases</span></span>
-    <h1>下载 <span id="app-name">芙伊app</span></h1>
+    <h1>下载 <span id="app-name">数据库管理系统</span></h1>
     <p>官方下载中心，自动获取最新版本，安装包直连 GitHub 官方下载地址。</p>
   </section>
 
@@ -289,13 +289,8 @@ const CONFIG = {
   brand: "芙伊app",
 
   /* 应用列表：每个应用对应一个仓库的 Releases，可任意增删。
-     品牌下可有多个应用，顶部可切换。 */
+     品牌下可有多个应用，顶部可切换；当前仅 1 个。 */
   apps: [
-    {
-      repo: "hjjiankong",          // 仓库名（不含用户名）
-      appName: "芙伊app",          // 切换条上显示的应用名
-      color: "#ff5c1f"             // 该应用的主题强调色
-    },
     {
       repo: "sjkglxt",             // 仓库名（不含用户名）
       appName: "数据库管理系统",   // 切换条上显示的应用名
@@ -579,7 +574,7 @@ function boot() {
     $("history").hidden = true;
     return;
   }
-  $("app-name").textContent = CONFIG.brand || CONFIG.apps[0].appName;
+  $("app-name").textContent = CONFIG.apps[0].appName;
   $("brand-name").textContent = (CONFIG.brand || CONFIG.apps[0].appName) + " 下载中心";
   document.title = (CONFIG.brand || CONFIG.apps[0].appName) + " 官方下载";
   if (CONFIG.mirror) $("mirror-note").hidden = false;

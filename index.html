@@ -256,9 +256,13 @@
 <main class="wrap">
   <section class="hero">
     <div id="app-tabs" class="app-tabs" hidden></div>
-    <span class="pill"><span class="dot"></span><span>数据源：GitHub Releases</span></span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="pill"><span class="dot"></span><span>数据源：GitHub Releases</span></span>
+      <span class="pill"><span>下载源：</span><span id="mirror-name">官方直连</span></span>
+    </div>
+    <div id="mirror-bar" class="app-tabs" style="margin-bottom:0"></div>
     <h1>下载 <span id="app-name">数据库管理系统</span></h1>
-    <p>官方下载中心，自动获取最新版本，安装包直连 GitHub 官方下载地址。</p>
+    <p>官方下载中心，自动获取最新版本；下载源可切换，下载更稳定。</p>
   </section>
 
   <!-- 最新版本 -->
@@ -301,8 +305,12 @@ const CONFIG = {
 
   releaseCount: 3,                 // 每个应用展示的 Release 数量（含最新版），即"最近三个"
   cacheTTL: 10 * 60 * 1000,        // 本地缓存 10 分钟，重复访问免请求、更快
-  mirror: ""                       // 可选：国内加速镜像前缀（如 "https://ghproxy.net/"）
-                                   // 留空 = 直连 GitHub 官方地址
+  fetchTimeout: 15000,             // API 请求超时（毫秒），超时自动重试
+  // 下载源：第一个为默认。prefix 会拼接在 GitHub 下载地址前；留空 = 官方直连
+  mirrors: [
+    { name: "官方直连", prefix: "" },
+    { name: "加速下载", prefix: "https://ghproxy.net/" }
+  ]
 };
 /* ============================================================ */
 
@@ -404,16 +412,39 @@ function writeCache(repo, data) {
   try { localStorage.setItem("gh-release:" + repo, JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
 }
 
-/* ---------- 获取 Releases ---------- */
+/* ---------- 获取 Releases（带超时 + 自动重试） ---------- */
+async function fetchWithTimeout(url, options, timeout) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    return await fetch(url, Object.assign({}, options, { signal: ctrl.signal }));
+  } finally {
+    clearTimeout(timer);
+  }
+}
 async function fetchReleases(repo) {
   const url = "https://api.github.com/repos/" + repo + "/releases?per_page=" + CONFIG.releaseCount;
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" });
-  if (res.status === 403 || res.status === 429) {
-    const err = new Error("rate-limit");
-    err.rateLimit = true;
-    throw err;
+  const opts = { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" };
+  let res = null, err = null;
+  // 最多尝试 2 次（超时/网络错误自动重试）
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      res = await fetchWithTimeout(url, opts, CONFIG.fetchTimeout);
+      if (res.ok) break;
+      if (res.status === 403 || res.status === 429) {
+        const e = new Error("rate-limit");
+        e.rateLimit = true;
+        throw e;
+      }
+      if (attempt === 0 && res.status >= 500) { await new Promise(r => setTimeout(r, 800)); continue; }
+      throw new Error("HTTP " + res.status);
+    } catch (e) {
+      if (e.rateLimit) throw e;
+      err = e;
+      if (attempt === 0) await new Promise(r => setTimeout(r, 800)); // 失败后稍等再重试
+    }
   }
-  if (!res.ok) throw new Error("HTTP " + res.status);
+  if (!res || !res.ok) throw (err || new Error("HTTP " + (res ? res.status : "未知")));
   const list = await res.json();
   // 过滤草稿与预发布，按发布时间倒序，去重 tag
   const seen = new Set();
@@ -427,7 +458,7 @@ async function fetchReleases(repo) {
 /* ---------- 渲染 ---------- */
 function downloadUrl(asset) {
   const u = asset.browser_download_url;
-  return CONFIG.mirror ? CONFIG.mirror + u : u;
+  return CONFIG.mirrors[mirrorIndex()].prefix + u;
 }
 function assetButton(asset, primary) {
   const p = detectPlatform(asset.name);
@@ -569,6 +600,34 @@ function selectApp(i) {
   load();
 }
 
+/* ---------- 下载源切换（官方直连 / 加速镜像） ---------- */
+function mirrorIndex() {
+  let i = 0;
+  try {
+    i = parseInt(localStorage.getItem("gh-mirror") || "0", 10);
+    if (isNaN(i) || i < 0 || i >= CONFIG.mirrors.length) i = 0;
+  } catch (e) { i = 0; }
+  return i;
+}
+function renderMirrors() {
+  const bar = $("mirror-bar");
+  const cur = mirrorIndex();
+  bar.innerHTML = CONFIG.mirrors.map((m, i) =>
+    '<button type="button" class="tab' + (i === cur ? " active" : "") + '" data-i="' + i + '">' + escapeHtml(m.name) + "</button>"
+  ).join("");
+  bar.addEventListener("click", e => {
+    const b = e.target.closest(".tab");
+    if (b) selectMirror(+b.dataset.i);
+  });
+  $("mirror-name").textContent = CONFIG.mirrors[cur].name;
+  $("mirror-note").hidden = CONFIG.mirrors[cur].prefix ? false : true;
+}
+function selectMirror(i) {
+  try { localStorage.setItem("gh-mirror", String(i)); } catch (e) {}
+  renderMirrors();
+  load();   // 重新渲染下载按钮使用新的下载源
+}
+
 /* ---------- 初始化 ---------- */
 function boot() {
   if (!CONFIG.apps || !CONFIG.apps.length) {
@@ -579,7 +638,7 @@ function boot() {
   $("app-name").textContent = CONFIG.apps[0].appName;
   $("brand-name").textContent = (CONFIG.brand || CONFIG.apps[0].appName) + " 下载中心";
   document.title = (CONFIG.brand || CONFIG.apps[0].appName) + " 官方下载";
-  if (CONFIG.mirror) $("mirror-note").hidden = false;
+  renderMirrors();   // 下载源切换条
   renderTabs();   // 始终显示应用切换条（当前 1 个，后续加应用即可切换）
   selectApp(0);
 }

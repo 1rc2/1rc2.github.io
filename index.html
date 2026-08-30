@@ -333,6 +333,10 @@ const PLATFORMS = [
     icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 3 6 3 11c0 2.8 1.4 5.3 3.6 6.9l.5 2.6c.1.6.6 1 1.2 1h7.4c.6 0 1.1-.4 1.2-1l.5-2.6C19.6 16.3 21 13.8 21 11c0-5-4-9-9-9zm-1.5 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm3 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM8.5 14.8c.9 1 2.1 1.6 3.5 1.6s2.6-.6 3.5-1.6c-.2 1.6-1.5 2.8-3.5 2.8s-3.3-1.2-3.5-2.8z"/></svg>' },
   { key: "ios", name: "iOS", suffix: ["ipa"], color: "#5f6bf0", bg: "#eceefc",
     icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.7 2.2-4 2.3-4-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.6-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.5-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.4-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM14 5.5c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.5-.6 3.3-1.5z"/></svg>' },
+  { key: "batch", name: "Windows 脚本", suffix: ["bat", "cmd"], color: "#c2562b", bg: "#fbeee5",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 7 4 12 7 17"/><polyline points="17 7 20 12 17 17"/><line x1="14" y1="6" x2="10" y2="18"/></svg>' },
+  { key: "python", name: "Python 脚本", suffix: ["py", "pyw"], color: "#3776ab", bg: "#e6eefa",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.9 2C9.2 2 9 3 9 3H7.1c-1.7 0-3 1.3-3 3v3.7h7.8v.6H4.4c-1.9 0-3.4 1.5-3.4 3.4v2.9c0 1.7 1.3 3.1 3 3.1h1.9V19c0 1.7 1.3 3 3 3h5.7c1.7 0 3-1.3 3-3v-1.9h-5.3v-.6h8.2c1.7 0 3-1.3 3-3v-3.7c0-1.7-1.3-3-3-3h-2.1V7.3c0-1.7-1.3-3-3-3H11.9zM8.9 4.9c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1zm6.3 12.3c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1z"/></svg>' },
 ];
 
 /* ---------- 工具函数 ---------- */
@@ -465,8 +469,16 @@ function downloadUrl(asset) {
   const u = asset.browser_download_url;
   return CONFIG.mirrors[mirrorIndex()].prefix + u;
 }
+function assetDisplayName(asset) {
+  // 如果 GitHub asset 填写了 label，优先显示（去掉括号里的别名备注，保证名字简洁可读）
+  if (asset.label && asset.label.trim()) {
+    return asset.label.split(/[（(]/)[0].trim() || asset.name;
+  }
+  return asset.name;
+}
 function assetButton(asset, primary) {
   const p = detectPlatform(asset.name);
+  const display = assetDisplayName(asset);
   const btn = primary
     ? '<a class="btn-download" href="' + downloadUrl(asset) + '" download rel="noopener">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>' +
@@ -474,7 +486,7 @@ function assetButton(asset, primary) {
     : '<a class="asset-btn" href="' + downloadUrl(asset) + '" download rel="noopener">' +
       '<span class="asset-icon" style="color:' + (p ? p.color : "#6b6258") + ";background:" + (p ? p.bg : "#f0ede8") + '">' +
       (p ? p.icon : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>') + "</span>" +
-      '<span class="asset-meta"><span class="n">' + escapeHtml(asset.name) + "</span>" +
+      '<span class="asset-meta"><span class="n">' + escapeHtml(display) + "</span>" +
       '<span class="s">' + (p ? p.name + " · " : "") + fmtSize(asset.size) + " · 下载 " + fmtNum(asset.download_count) + "</span></span>" +
       '<span class="asset-go">下载<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span></a>';
   return btn;

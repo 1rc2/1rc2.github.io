@@ -237,6 +237,36 @@
     .asset-btn{padding:11px 13px}
     .assets{gap:8px}
   }
+
+  /* 底部导航 */
+  body{padding-bottom:70px}
+  .bottom-nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    display:flex;justify-content:space-around;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .nav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:10px 0 8px;color:var(--muted);text-decoration:none;
+    font-size:12px;cursor:pointer;transition:color .2s;
+  }
+  .nav-item svg{width:22px;height:22px}
+  .nav-item.active{color:var(--accent)}
+  .nav-item:hover{color:var(--accent)}
+
+  /* 我的页 */
+  #view-about{display:none;padding:24px 0}
+  #view-about .about-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;box-shadow:var(--shadow);
+  }
+  #view-about h2{font-size:18px;margin-bottom:14px}
+  #view-about p{color:var(--muted);line-height:1.8;margin-bottom:12px;font-size:14.5px}
+  #view-about .about-list{margin:16px 0;padding-left:20px;color:var(--muted);line-height:2;font-size:14px}
+  #view-about .about-list li{margin-bottom:4px}
+  #view-about .tag{display:inline-block;background:#f3efe9;color:var(--ink);padding:3px 10px;border-radius:999px;font-size:12.5px;margin:3px 6px 3px 0}
 </style>
 </head>
 <body>
@@ -270,12 +300,59 @@
 
   <!-- 历史版本 -->
   <section id="history" hidden></section>
+
+  <!-- 我的页 -->
+  <section id="view-about" class="wrap">
+    <div class="about-card reveal">
+      <h2>关于本站</h2>
+      <p>本站是一个轻量级的应用下载中心，托管于 GitHub Pages，通过 GitHub Releases API 自动同步各应用的最新版本与下载地址，无需手动维护下载链接。</p>
+
+      <h2 style="margin-top:22px">工作原理</h2>
+      <ul class="about-list">
+        <li>每个应用对应一个 GitHub 仓库，发布 Release 时上传安装包（APK / EXE 等）。</li>
+        <li>本站调用 GitHub 公开 API，自动拉取最新 Release 的资产列表。</li>
+        <li>页面渲染版本号与下载按钮，新版本发布后自动同步。</li>
+      </ul>
+
+      <h2 style="margin-top:22px">主要特性</h2>
+      <div>
+        <span class="tag">自动同步版本</span>
+        <span class="tag">多应用切换</span>
+        <span class="tag">下载源切换</span>
+        <span class="tag">本地缓存加速</span>
+        <span class="tag">请求超时重试</span>
+        <span class="tag">响应式适配</span>
+      </div>
+
+      <h2 style="margin-top:22px">使用说明</h2>
+      <ul class="about-list">
+        <li>在「首页」选择应用，点击下载按钮即可获取安装包。</li>
+        <li>如遇下载缓慢，可切换「加速下载」源。</li>
+        <li>页面数据缓存 10 分钟，重复访问无需重复请求。</li>
+      </ul>
+
+      <h2 style="margin-top:22px">技术信息</h2>
+      <p>构建于 GitHub Pages · 数据源 GitHub Releases API · 纯前端实现，无后端服务器。</p>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div>Powered by GitHub Releases API · 数据自动同步</div>
   <div class="mirror-note" id="mirror-note" hidden>已启用下载加速镜像</div>
 </footer>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav">
+  <a class="nav-item active" data-view="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+    <span>首页</span>
+  </a>
+  <a class="nav-item" data-view="about">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+    <span>我的</span>
+  </a>
+</nav>
 
 <noscript><p style="text-align:center;padding:40px">本页面需要启用 JavaScript 才能拉取下载信息。</p></noscript>
 
@@ -625,8 +702,36 @@ function selectMirror(i) {
   load();   // 重新渲染下载按钮使用新的下载源
 }
 
+/* ---------- 底部导航视图切换 ---------- */
+function switchView(view) {
+  const about = $("view-about");
+  // 首页元素集合：hero、latest、history、topbar、footer
+  const homeEls = [
+    document.querySelector(".hero"),
+    $("latest"),
+    $("history"),
+    document.querySelector(".topbar"),
+    document.querySelector("footer")
+  ];
+  homeEls.forEach(el => { if (el) el.style.display = (view === "home" ? "" : "none"); });
+  about.style.display = (view === "about" ? "block" : "none");
+  document.querySelectorAll(".nav-item").forEach(n => {
+    n.classList.toggle("active", n.dataset.view === view);
+  });
+  window.scrollTo(0, 0);
+}
+function initBottomNav() {
+  document.querySelectorAll(".nav-item").forEach(n => {
+    n.addEventListener("click", e => {
+      e.preventDefault();
+      switchView(n.dataset.view);
+    });
+  });
+}
+
 /* ---------- 初始化 ---------- */
 function boot() {
+  initBottomNav();
   if (!CONFIG.apps || !CONFIG.apps.length) {
     $("latest").innerHTML = '<div class="card state"><div class="big">请先在 CONFIG.apps 中配置至少一个应用</div></div>';
     $("history").hidden = true;

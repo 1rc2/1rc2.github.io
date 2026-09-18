@@ -149,9 +149,9 @@
   .notes a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 
   /* 资产按钮 */
-  .assets{display:grid;gap:10px;margin-top:22px;grid-template-columns:minmax(0,1fr)}
+  .assets{display:grid;gap:10px;margin-top:22px}
   .asset-btn{
-    display:flex;align-items:center;gap:14px;min-width:0;
+    display:flex;align-items:center;gap:14px;
     text-decoration:none;color:var(--ink);
     border:1px solid var(--line);border-radius:14px;
     padding:13px 16px;background:#fdfcfb;
@@ -160,10 +160,10 @@
   .asset-btn:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
   .asset-icon{width:38px;height:38px;border-radius:10px;flex:none;display:grid;place-items:center}
   .asset-icon svg{width:21px;height:21px}
-  .asset-meta{flex:1;min-width:0;overflow:hidden}
+  .asset-meta{flex:1;min-width:0}
   .asset-meta .n{font-size:14px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .asset-meta .s{font-size:12px;color:var(--muted);display:block;margin-top:2px;font-family:ui-monospace,Consolas,monospace}
-  .asset-go{flex:none;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600;white-space:nowrap}
+  .asset-go{flex:none;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600}
   .asset-go svg{width:15px;height:15px;transition:transform .2s}
   .asset-btn:hover .asset-go svg{transform:translateX(3px)}
 
@@ -261,53 +261,12 @@
       <span class="pill"><span>下载源：</span><span id="mirror-name">官方直连</span></span>
     </div>
     <div id="mirror-bar" class="app-tabs" style="margin-bottom:0"></div>
-    <h1>下载 <span id="app-name">数据库管理系统</span></h1>
+    <h1>下载 <span id="app-name">应用</span></h1>
     <p>官方下载中心，自动获取最新版本；下载源可切换，下载更稳定。</p>
-    <p style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span class="pill">Tailscale APP（连接后端需安装，若官网打不开可直接下载）</span>
-      <a class="gh-link" href="https://github.com/1rc2/sjkglxt/releases/download/v1.1.1/tailscale-setup-1.102.3.exe" target="_blank" rel="noopener">Windows 版<span aria-hidden="true">↗</span></a>
-      <a class="gh-link" href="https://github.com/1rc2/sjkglxt/releases/download/v1.1.1/tailscale-android-universal-1.102.3.apk" target="_blank" rel="noopener">Android 版<span aria-hidden="true">↗</span></a>
-    </p>
   </section>
 
   <!-- 最新版本 -->
   <section id="latest"></section>
-
-  <!-- 后端控制脚本（独立配置区域，不随版本 Release 变化） -->
-  <section id="config" class="reveal">
-    <div class="card">
-      <div class="card-head">
-        <span class="tag">配置</span>
-        <span class="rel-time">后端控制脚本</span>
-      </div>
-      <p style="margin:0 0 14px;color:#6b6258;font-size:14px;line-height:1.7">
-        以下脚本用于在电脑上控制后端服务（启动 / 停止 / 开机自启等），与 APP 配合使用。<br>
-        下载后放在项目根目录双击运行即可，不依赖任何版本更新。
-      </p>
-      <div class="assets">
-        <a class="asset-btn" href="https://raw.githubusercontent.com/1rc2/sjkglxt/main/后端控制.bat" download rel="noopener">
-          <span class="asset-icon" style="color:#c2562b;background:#fbeee5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 7 4 12 7 17"/><polyline points="17 7 20 12 17 17"/><line x1="14" y1="6" x2="10" y2="18"/></svg>
-          </span>
-          <span class="asset-meta">
-            <span class="n">后端控制.bat</span>
-            <span class="s">Windows 批处理 · 下载</span>
-          </span>
-          <span class="asset-go">下载<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-        </a>
-        <a class="asset-btn" href="https://raw.githubusercontent.com/1rc2/sjkglxt/main/backend_control.py" download rel="noopener">
-          <span class="asset-icon" style="color:#3776ab;background:#e6eefa">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.9 2C9.2 2 9 3 9 3H7.1c-1.7 0-3 1.3-3 3v3.7h7.8v.6H4.4c-1.9 0-3.4 1.5-3.4 3.4v2.9c0 1.7 1.3 3.1 3 3.1h1.9V19c0 1.7 1.3 3 3 3h5.7c1.7 0 3-1.3 3-3v-1.9h-5.3v-.6h8.2c1.7 0 3-1.3 3-3v-3.7c0-1.7-1.3-3-3-3h-2.1V7.3c0-1.7-1.3-3-3-3H11.9zM8.9 4.9c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1zm6.3 12.3c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1z"/></svg>
-          </span>
-          <span class="asset-meta">
-            <span class="n">backend_control.py</span>
-            <span class="s">Python 脚本 · 下载</span>
-          </span>
-          <span class="asset-go">下载<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-        </a>
-      </div>
-    </div>
-  </section>
 
   <!-- 历史版本 -->
   <section id="history" hidden></section>
@@ -337,11 +296,8 @@ const CONFIG = {
      后续新增应用：复制下面一项，改 repo（GitHub 仓库名）、
      appName（显示名）、color（主题色）即可，顶部切换条自动出现。 */
   apps: [
-    {
-      repo: "sjkglxt",             // 仓库名（不含用户名）
-      appName: "数据库管理系统",   // 切换条上显示的应用名
-      color: "#2563eb"             // 该应用的主题强调色
-    }
+    // 当前暂无应用。新增应用请在此添加，例如：
+    // { repo: "sjkglxt", appName: "数据库管理系统", color: "#2563eb" }
   ],
 
   releaseCount: 3,                 // 每个应用展示的 Release 数量（含最新版），即"最近三个"
@@ -369,10 +325,6 @@ const PLATFORMS = [
     icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 3 6 3 11c0 2.8 1.4 5.3 3.6 6.9l.5 2.6c.1.6.6 1 1.2 1h7.4c.6 0 1.1-.4 1.2-1l.5-2.6C19.6 16.3 21 13.8 21 11c0-5-4-9-9-9zm-1.5 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm3 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM8.5 14.8c.9 1 2.1 1.6 3.5 1.6s2.6-.6 3.5-1.6c-.2 1.6-1.5 2.8-3.5 2.8s-3.3-1.2-3.5-2.8z"/></svg>' },
   { key: "ios", name: "iOS", suffix: ["ipa"], color: "#5f6bf0", bg: "#eceefc",
     icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.7 2.2-4 2.3-4-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.6-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.5-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.4-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM14 5.5c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.5-.6 3.3-1.5z"/></svg>' },
-  { key: "batch", name: "Windows 脚本", suffix: ["bat", "cmd"], color: "#c2562b", bg: "#fbeee5",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 7 4 12 7 17"/><polyline points="17 7 20 12 17 17"/><line x1="14" y1="6" x2="10" y2="18"/></svg>' },
-  { key: "python", name: "Python 脚本", suffix: ["py", "pyw"], color: "#3776ab", bg: "#e6eefa",
-    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.9 2C9.2 2 9 3 9 3H7.1c-1.7 0-3 1.3-3 3v3.7h7.8v.6H4.4c-1.9 0-3.4 1.5-3.4 3.4v2.9c0 1.7 1.3 3.1 3 3.1h1.9V19c0 1.7 1.3 3 3 3h5.7c1.7 0 3-1.3 3-3v-1.9h-5.3v-.6h8.2c1.7 0 3-1.3 3-3v-3.7c0-1.7-1.3-3-3-3h-2.1V7.3c0-1.7-1.3-3-3-3H11.9zM8.9 4.9c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1zm6.3 12.3c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1z"/></svg>' },
 ];
 
 /* ---------- 工具函数 ---------- */
@@ -505,16 +457,8 @@ function downloadUrl(asset) {
   const u = asset.browser_download_url;
   return CONFIG.mirrors[mirrorIndex()].prefix + u;
 }
-function assetDisplayName(asset) {
-  // 如果 GitHub asset 填写了 label，优先显示（去掉括号里的别名备注，保证名字简洁可读）
-  if (asset.label && asset.label.trim()) {
-    return asset.label.split(/[（(]/)[0].trim() || asset.name;
-  }
-  return asset.name;
-}
 function assetButton(asset, primary) {
   const p = detectPlatform(asset.name);
-  const display = assetDisplayName(asset);
   const btn = primary
     ? '<a class="btn-download" href="' + downloadUrl(asset) + '" download rel="noopener">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>' +
@@ -522,7 +466,7 @@ function assetButton(asset, primary) {
     : '<a class="asset-btn" href="' + downloadUrl(asset) + '" download rel="noopener">' +
       '<span class="asset-icon" style="color:' + (p ? p.color : "#6b6258") + ";background:" + (p ? p.bg : "#f0ede8") + '">' +
       (p ? p.icon : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>') + "</span>" +
-      '<span class="asset-meta"><span class="n">' + escapeHtml(display) + "</span>" +
+      '<span class="asset-meta"><span class="n">' + escapeHtml(asset.name) + "</span>" +
       '<span class="s">' + (p ? p.name + " · " : "") + fmtSize(asset.size) + " · 下载 " + fmtNum(asset.download_count) + "</span></span>" +
       '<span class="asset-go">下载<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span></a>';
   return btn;

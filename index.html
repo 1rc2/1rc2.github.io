@@ -267,6 +267,27 @@
   #view-about .about-list{margin:16px 0;padding-left:20px;color:var(--muted);line-height:2;font-size:14px}
   #view-about .about-list li{margin-bottom:4px}
   #view-about .tag{display:inline-block;background:#f3efe9;color:var(--ink);padding:3px 10px;border-radius:999px;font-size:12.5px;margin:3px 6px 3px 0}
+
+  /* 关联站点卡片 */
+  #view-about .link-card{
+    display:flex;align-items:center;gap:14px;
+    background:#fbf8f3;border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;text-decoration:none;color:var(--ink);
+    transition:border-color .2s,transform .15s,box-shadow .2s;
+  }
+  #view-about .link-card:hover{
+    border-color:var(--accent);transform:translateY(-1px);
+    box-shadow:0 4px 12px rgba(255,92,31,.12);
+  }
+  #view-about .link-card-icon{
+    width:40px;height:40px;border-radius:10px;flex-shrink:0;
+    background:var(--accent);color:#fff;display:grid;place-items:center;
+  }
+  #view-about .link-card-icon svg{width:22px;height:22px}
+  #view-about .link-card-body{flex:1;min-width:0}
+  #view-about .link-card-title{font-size:15px;font-weight:600;color:var(--ink)}
+  #view-about .link-card-arrow{color:var(--accent);margin-left:4px}
+  #view-about .link-card-desc{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -333,6 +354,17 @@
 
       <h2 style="margin-top:22px">技术信息</h2>
       <p>构建于 GitHub Pages · 数据源 GitHub Releases API · 纯前端实现，无后端服务器。</p>
+
+      <h2 style="margin-top:22px">关联站点</h2>
+      <a class="link-card" href="https://1rc2.github.io/sjkglxt/" target="_blank" rel="noopener">
+        <div class="link-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v2H6a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0 3-3 3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-3V5a3 3 0 0 0-3-3z"/></svg>
+        </div>
+        <div class="link-card-body">
+          <div class="link-card-title">Trae AI 代理 <span class="link-card-arrow">↗</span></div>
+          <div class="link-card-desc">基于 Cloudflare Workers 的 AI 对话代理，密钥安全托管</div>
+        </div>
+      </a>
     </div>
   </section>
 </main>

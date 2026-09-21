@@ -737,6 +737,16 @@ function initBottomNav() {
 /* ---------- 初始化 ---------- */
 function boot() {
   initBottomNav();
+
+  // 恢复底部导航视图（首页 / 我的）——必须先于 apps 判断，
+  // 否则 apps 为空时下面 return 会跳过恢复，刷新永远回首页
+  let savedView = "home";
+  try {
+    const v = localStorage.getItem("gh-view");
+    if (v === "home" || v === "about") savedView = v;
+  } catch (e) {}
+  if (savedView !== "home") switchView(savedView);
+
   if (!CONFIG.apps || !CONFIG.apps.length) {
     $("latest").innerHTML = '<div class="card state"><div class="big">请先在 CONFIG.apps 中配置至少一个应用</div></div>';
     $("history").hidden = true;
@@ -755,14 +765,6 @@ function boot() {
   renderMirrors();   // 下载源切换条（自带 localStorage）
   renderTabs();
   selectApp(savedApp);
-
-  // 恢复底部导航视图（首页 / 我的）
-  let savedView = "home";
-  try {
-    const v = localStorage.getItem("gh-view");
-    if (v === "home" || v === "about") savedView = v;
-  } catch (e) {}
-  if (savedView !== "home") switchView(savedView);
 }
 document.addEventListener("DOMContentLoaded", boot);
 </script>

@@ -669,6 +669,7 @@ function renderTabs() {
 
 function selectApp(i) {
   const a = CONFIG.apps[i];
+  try { localStorage.setItem("gh-app", String(i)); } catch (e) {}
   document.querySelectorAll("#app-tabs .tab").forEach((t, ti) => t.classList.toggle("active", ti === i));
   document.documentElement.style.setProperty("--accent", a.color);          // 每个应用独立主题色
   document.documentElement.style.setProperty("--accent-deep", shade(a.color, 0.85));
@@ -721,6 +722,7 @@ function switchView(view) {
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
+  try { localStorage.setItem("gh-view", view); } catch (e) {}
   window.scrollTo(0, 0);
 }
 function initBottomNav() {
@@ -740,12 +742,27 @@ function boot() {
     $("history").hidden = true;
     return;
   }
-  $("app-name").textContent = CONFIG.apps[0].appName;
-  $("brand-name").textContent = (CONFIG.brand || CONFIG.apps[0].appName) + " 下载中心";
-  document.title = (CONFIG.brand || CONFIG.apps[0].appName) + " 官方下载";
-  renderMirrors();   // 下载源切换条
-  renderTabs();   // 始终显示应用切换条（当前 1 个，后续加应用即可切换）
-  selectApp(0);
+  // 恢复上次选择的应用 tab（localStorage，范围校验，默认 0）
+  let savedApp = 0;
+  try {
+    const n = parseInt(localStorage.getItem("gh-app"), 10);
+    if (!isNaN(n) && n >= 0 && n < CONFIG.apps.length) savedApp = n;
+  } catch (e) {}
+  const a0 = CONFIG.apps[savedApp];
+  $("app-name").textContent = a0.appName;
+  $("brand-name").textContent = (CONFIG.brand || a0.appName) + " 下载中心";
+  document.title = (CONFIG.brand || a0.appName) + " 官方下载";
+  renderMirrors();   // 下载源切换条（自带 localStorage）
+  renderTabs();
+  selectApp(savedApp);
+
+  // 恢复底部导航视图（首页 / 我的）
+  let savedView = "home";
+  try {
+    const v = localStorage.getItem("gh-view");
+    if (v === "home" || v === "about") savedView = v;
+  } catch (e) {}
+  if (savedView !== "home") switchView(savedView);
 }
 document.addEventListener("DOMContentLoaded", boot);
 </script>

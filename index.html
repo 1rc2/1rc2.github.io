@@ -292,6 +292,30 @@
   .repo-card:hover .rc-go svg{transform:translateX(3px)}
   .repo-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
 
+  /* 网页页（简单标签，点击跳转 GitHub Pages） */
+  #view-pages{display:none;padding:24px 0}
+  .pages-grid{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+  .page-tag{
+    display:inline-flex;align-items:center;gap:10px;
+    text-decoration:none;color:var(--ink);
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 18px;box-shadow:var(--shadow);
+    transition:transform .15s,border-color .15s,box-shadow .15s;
+  }
+  .page-tag:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
+  .page-tag .pt-icon{
+    width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center;
+    color:var(--accent);background:#fff1ea;border:1px solid #ffe1cf;
+  }
+  .page-tag .pt-icon svg{width:17px;height:17px}
+  .page-tag .pt-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .page-tag .pt-name{font-size:14px;font-weight:700;white-space:nowrap}
+  .page-tag .pt-url{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+  .page-tag .pt-go{flex:none;color:var(--accent);display:inline-flex;align-items:center}
+  .page-tag .pt-go svg{width:15px;height:15px;transition:transform .2s}
+  .page-tag:hover .pt-go svg{transform:translateX(3px)}
+  .pages-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
+
 </style>
 </head>
 <body>
@@ -367,6 +391,12 @@
     <div class="section-title reveal" style="margin-top:8px">我的仓库</div>
     <div id="repos-list"></div>
   </section>
+
+  <!-- 网页页（简单标签，点击跳转 GitHub Pages） -->
+  <section id="view-pages" class="wrap">
+    <div class="section-title reveal" style="margin-top:8px">我的网页</div>
+    <div id="pages-list" class="pages-grid"></div>
+  </section>
 </main>
 
 <footer>
@@ -379,6 +409,10 @@
   <a class="nav-item active" data-view="home">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
     <span>首页</span>
+  </a>
+  <a class="nav-item" data-view="pages">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg>
+    <span>网页</span>
   </a>
   <a class="nav-item" data-view="repos">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
@@ -797,6 +831,52 @@ async function loadRepos() {
   }
 }
 
+/* ---------- 网页列表（简单标签，复用 fetchRepos，跳转 GitHub Pages） ---------- */
+function pagesUrl(r) { return "https://" + CONFIG.user + ".github.io/" + r.name + "/"; }
+function pageTag(r, i) {
+  return '<a class="page-tag reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + pagesUrl(r) + '" target="_blank" rel="noopener">' +
+    '<span class="pt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg></span>' +
+    '<span class="pt-text"><span class="pt-name">' + escapeHtml(r.name) + '</span>' +
+    '<span class="pt-url">' + escapeHtml(pagesUrl(r)) + '</span></span>' +
+    '<span class="pt-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
+  '</a>';
+}
+function pagesSkeletonHTML() {
+  return '<div class="page-tag skeleton"><div class="sk-line" style="width:60px"></div><div class="sk-line" style="width:140px"></div></div>'.repeat(3);
+}
+function pagesStateHTML(kind, detail) {
+  if (kind === "empty") return '<div class="pages-empty reveal">暂无可访问的网页</div>';
+  let html = '<div class="pages-empty reveal">';
+  html += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">获取网页列表失败</div>';
+  html += detail && detail.rateLimit
+    ? '<span style="color:var(--warn);font-size:13px">GitHub API 请求达到频率限制，请稍后再试。</span>'
+    : '<span style="color:var(--warn);font-size:13px">' + escapeHtml((detail && detail.message) || "网络异常") + '</span>';
+  html += '<br><button class="retry-btn" onclick="loadPages()">重试</button>';
+  html += '</div>';
+  return html;
+}
+function renderPages(repos, stale) {
+  const el = $("pages-list");
+  if (!repos || !repos.length) { el.innerHTML = pagesStateHTML("empty"); return; }
+  el.innerHTML = repos.map((r, i) => pageTag(r, i)).join("") +
+    (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px;width:100%">网络暂不可用，以上为缓存数据</p>' : "");
+}
+async function loadPages() {
+  const el = $("pages-list");
+  if (!el) return;
+  const cached = readReposCache();
+  if (cached && cached.length) renderPages(cached, false);
+  else el.innerHTML = pagesSkeletonHTML();
+  try {
+    const repos = await fetchRepos();
+    writeReposCache(repos);
+    renderPages(repos, false);
+  } catch (err) {
+    if (cached && cached.length) renderPages(cached, true);
+    else el.innerHTML = pagesStateHTML("error", { rateLimit: !!err.rateLimit, message: err.rateLimit ? "" : (err.message || "网络异常") });
+  }
+}
+
 /* ---------- 应用切换 ---------- */
 function renderTabs() {
   const tabsEl = $("app-tabs");
@@ -853,6 +933,7 @@ function selectMirror(i) {
 function switchView(view) {
   const about = $("view-about");
   const repos = $("view-repos");
+  const pages = $("view-pages");
   // 首页元素集合：hero、latest、history、topbar、footer
   const homeEls = [
     document.querySelector(".hero"),
@@ -864,11 +945,13 @@ function switchView(view) {
   homeEls.forEach(el => { if (el) el.style.display = (view === "home" ? "" : "none"); });
   about.style.display = (view === "about" ? "block" : "none");
   repos.style.display = (view === "repos" ? "block" : "none");
+  pages.style.display = (view === "pages" ? "block" : "none");
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
   try { localStorage.setItem("gh-view", view); } catch (e) {}
   if (view === "repos") loadRepos();
+  if (view === "pages") loadPages();
   window.scrollTo(0, 0);
 }
 function initBottomNav() {
@@ -889,7 +972,7 @@ function boot() {
   let savedView = "home";
   try {
     const v = localStorage.getItem("gh-view");
-    if (v === "home" || v === "about" || v === "repos") savedView = v;
+    if (v === "home" || v === "about" || v === "repos" || v === "pages") savedView = v;
   } catch (e) {}
   if (savedView !== "home") switchView(savedView);
 

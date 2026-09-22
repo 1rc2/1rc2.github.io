@@ -292,37 +292,38 @@
   .repo-card:hover .rc-go svg{transform:translateX(3px)}
   .repo-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
 
-  /* 网页页（简单标签，点击跳转 GitHub Pages） —— 一行两个，收窄左右，加高上下 */
+  /* 网页页 —— 强制两列 grid，上下加高，左右收窄 */
   #view-pages{display:none;padding:24px 0}
-  .pages-grid{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px}
+  .pages-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
   .page-tag{
-    width:calc(50% - 7px);max-width:280px;
-    display:flex;align-items:center;gap:12px;
+    display:flex;align-items:center;gap:10px;
     text-decoration:none;color:var(--ink);
-    background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:28px 16px;box-shadow:var(--shadow);
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:26px 14px;box-shadow:var(--shadow);
     transition:transform .15s,border-color .15s,box-shadow .15s;
   }
   .page-tag:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
   .page-tag .pt-icon{
-    width:36px;height:36px;border-radius:9px;flex:none;display:grid;place-items:center;
+    width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;
     color:var(--accent);background:#fff1ea;border:1px solid #ffe1cf;
   }
-  .page-tag .pt-icon svg{width:18px;height:18px}
+  .page-tag .pt-icon svg{width:16px;height:16px}
   .page-tag .pt-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
   .page-tag .pt-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .page-tag .pt-url{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .page-tag .pt-url{font-size:11px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .page-tag .pt-go{flex:none;color:var(--accent);display:inline-flex;align-items:center}
-  .page-tag .pt-go svg{width:15px;height:15px;transition:transform .2s}
+  .page-tag .pt-go svg{width:14px;height:14px;transition:transform .2s}
   .page-tag:hover .pt-go svg{transform:translateX(3px)}
-  .pages-empty{width:100%;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
+  .pages-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
   @media (max-width:560px){
-    .pages-grid{gap:10px}
-    .page-tag{width:calc(50% - 5px);padding:24px 14px;gap:10px;max-width:none}
-    .page-tag .pt-icon{width:32px;height:32px}
+    .pages-grid{gap:8px}
+    .page-tag{padding:30px 10px;gap:8px;border-radius:10px}
+    .page-tag .pt-icon{width:28px;height:28px;border-radius:7px}
+    .page-tag .pt-icon svg{width:14px;height:14px}
     .page-tag .pt-text{gap:2px}
-    .page-tag .pt-name{font-size:13px}
-    .page-tag .pt-url{font-size:10.5px}
+    .page-tag .pt-name{font-size:12.5px}
+    .page-tag .pt-url{font-size:9.5px}
+    .page-tag .pt-go svg{width:13px;height:13px}
   }
 
 </style>

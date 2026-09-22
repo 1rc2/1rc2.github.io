@@ -269,6 +269,29 @@
   #view-about .about-list li{margin-bottom:4px}
   #view-about .tag{display:inline-block;background:#f3efe9;color:var(--ink);padding:3px 10px;border-radius:999px;font-size:12.5px;margin:3px 6px 3px 0}
 
+  /* 仓库页（仅查看） */
+  #view-repos{display:none;padding:24px 0}
+  .repo-card{
+    display:block;text-decoration:none;color:var(--ink);
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:20px 22px;margin-top:14px;
+    transition:transform .15s,border-color .15s,box-shadow .15s;
+  }
+  .repo-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
+  .repo-card .rc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .repo-card .rc-name{font-size:16px;font-weight:700;display:inline-flex;align-items:center;gap:8px;word-break:break-all}
+  .repo-card .rc-name svg{width:16px;height:16px;color:var(--muted);flex:none}
+  .repo-card .rc-stars{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace,Consolas,monospace;flex:none;white-space:nowrap}
+  .repo-card .rc-stars svg{width:14px;height:14px;color:#f0af41}
+  .repo-card .rc-desc{margin-top:8px;font-size:13.5px;color:#4a443d;line-height:1.6;word-break:break-word}
+  .repo-card .rc-meta{margin-top:12px;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .repo-card .rc-lang{display:inline-flex;align-items:center;gap:6px}
+  .repo-card .rc-dot{width:10px;height:10px;border-radius:50%;background:#6b6258;flex:none}
+  .repo-card .rc-go{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600}
+  .repo-card .rc-go svg{width:15px;height:15px;transition:transform .2s}
+  .repo-card:hover .rc-go svg{transform:translateX(3px)}
+  .repo-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
+
 </style>
 </head>
 <body>
@@ -338,6 +361,12 @@
 
     </div>
   </section>
+
+  <!-- 仓库页（仅查看） -->
+  <section id="view-repos" class="wrap">
+    <div class="section-title reveal" style="margin-top:8px">我的仓库</div>
+    <div id="repos-list"></div>
+  </section>
 </main>
 
 <footer>
@@ -350,6 +379,10 @@
   <a class="nav-item active" data-view="home">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
     <span>首页</span>
+  </a>
+  <a class="nav-item" data-view="repos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
+    <span>仓库</span>
   </a>
   <a class="nav-item" data-view="about">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
@@ -654,6 +687,116 @@ async function load() {
   }
 }
 
+/* ---------- 仓库列表（仅查看，排除 io 仓库） ---------- */
+const REPO_LANG_COLORS = {
+  JavaScript: "#f1e05a", TypeScript: "#3178c6", Python: "#3572A5",
+  Java: "#b07219", HTML: "#e34c26", CSS: "#563d7c", "C++": "#f34b7d",
+  C: "#555555", "C#": "#178600", Go: "#00ADD8", Rust: "#dea584",
+  PHP: "#4F5D95", Ruby: "#701516", Swift: "#F05138", Kotlin: "#A97BFF",
+  Dart: "#00B4AB", Shell: "#89e051", Vue: "#41b883", "Jupyter Notebook": "#DA5B0B",
+  MDX: "#fcb32c", Markdown: "#083fa1", Dockerfile: "#384d54", Lua: "#000080"
+};
+function langColor(lang) { return REPO_LANG_COLORS[lang] || "#6b6258"; }
+function isIoRepo(r) { return r.name && r.name.endsWith(".github.io"); }
+
+function readReposCache() {
+  try {
+    const raw = localStorage.getItem("gh-repos");
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (Date.now() - c.ts < CONFIG.cacheTTL) return c.data;
+  } catch (e) {}
+  return null;
+}
+function writeReposCache(data) {
+  try { localStorage.setItem("gh-repos", JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
+}
+async function fetchRepos() {
+  const url = "https://api.github.com/users/" + CONFIG.user + "/repos?per_page=100&sort=updated&direction=desc";
+  const opts = { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" };
+  let res = null, err = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      res = await fetchWithTimeout(url, opts, CONFIG.fetchTimeout);
+      if (res.ok) break;
+      if (res.status === 403 || res.status === 429) {
+        const e = new Error("rate-limit"); e.rateLimit = true; throw e;
+      }
+      if (attempt === 0 && res.status >= 500) { await new Promise(r => setTimeout(r, 800)); continue; }
+      throw new Error("HTTP " + res.status);
+    } catch (e) {
+      if (e.rateLimit) throw e;
+      err = e;
+      if (attempt === 0) await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  if (!res || !res.ok) throw (err || new Error("HTTP " + (res ? res.status : "未知")));
+  const list = await res.json();
+  return list
+    .filter(r => !isIoRepo(r))                                  // 排除 io 仓库
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+}
+function repoCard(r, i) {
+  const desc = r.description ? escapeHtml(r.description) : '<span style="color:var(--muted)">暂无描述</span>';
+  const lang = r.language
+    ? '<span class="rc-lang"><span class="rc-dot" style="background:' + langColor(r.language) + '"></span>' + escapeHtml(r.language) + '</span>'
+    : '<span class="rc-lang"><span class="rc-dot"></span>未标记语言</span>';
+  return '<a class="repo-card reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + r.html_url + '" target="_blank" rel="noopener">' +
+    '<div class="rc-head">' +
+      '<span class="rc-name">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>' +
+        escapeHtml(r.name) +
+      '</span>' +
+      '<span class="rc-stars">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' +
+        fmtNum(r.stargazers_count) +
+      '</span>' +
+    '</div>' +
+    '<div class="rc-desc">' + desc + '</div>' +
+    '<div class="rc-meta">' + lang +
+      '<span>分支 ' + fmtNum(r.forks_count) + '</span>' +
+      '<span>更新于 ' + fmtDate(r.updated_at) + '</span>' +
+    '</div>' +
+    '<span class="rc-go">在 GitHub 查看<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
+  '</a>';
+}
+function reposSkeletonHTML() {
+  return '<div class="repo-card skeleton"><div class="sk-line" style="width:40%"></div><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:60%"></div></div>' +
+         '<div class="repo-card skeleton"><div class="sk-line" style="width:50%"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:55%"></div></div>';
+}
+function reposStateHTML(kind, detail) {
+  if (kind === "empty") return '<div class="repo-empty reveal">暂无公开仓库</div>';
+  let html = '<div class="repo-empty reveal">';
+  html += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">获取仓库列表失败</div>';
+  html += detail && detail.rateLimit
+    ? '<span style="color:var(--warn);font-size:13px">GitHub API 请求达到频率限制，请稍后再试。</span>'
+    : '<span style="color:var(--warn);font-size:13px">' + escapeHtml((detail && detail.message) || "网络异常") + '</span>';
+  html += '<br><button class="retry-btn" onclick="loadRepos()">重试</button>';
+  html += '</div>';
+  return html;
+}
+function renderRepos(repos, stale) {
+  const el = $("repos-list");
+  if (!repos || !repos.length) { el.innerHTML = reposStateHTML("empty"); return; }
+  el.innerHTML = repos.map((r, i) => repoCard(r, i)).join("") +
+    (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">网络暂不可用，以上为缓存数据</p>' : "");
+}
+async function loadRepos() {
+  const el = $("repos-list");
+  if (!el) return;
+  const cached = readReposCache();
+  if (cached && cached.length) renderRepos(cached, false);
+  else el.innerHTML = reposSkeletonHTML();
+  try {
+    const repos = await fetchRepos();
+    writeReposCache(repos);
+    renderRepos(repos, false);
+  } catch (err) {
+    if (cached && cached.length) renderRepos(cached, true);
+    else el.innerHTML = reposStateHTML("error", { rateLimit: !!err.rateLimit, message: err.rateLimit ? "" : (err.message || "网络异常") });
+  }
+}
+
 /* ---------- 应用切换 ---------- */
 function renderTabs() {
   const tabsEl = $("app-tabs");
@@ -709,6 +852,7 @@ function selectMirror(i) {
 /* ---------- 底部导航视图切换 ---------- */
 function switchView(view) {
   const about = $("view-about");
+  const repos = $("view-repos");
   // 首页元素集合：hero、latest、history、topbar、footer
   const homeEls = [
     document.querySelector(".hero"),
@@ -719,10 +863,12 @@ function switchView(view) {
   ];
   homeEls.forEach(el => { if (el) el.style.display = (view === "home" ? "" : "none"); });
   about.style.display = (view === "about" ? "block" : "none");
+  repos.style.display = (view === "repos" ? "block" : "none");
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
   try { localStorage.setItem("gh-view", view); } catch (e) {}
+  if (view === "repos") loadRepos();
   window.scrollTo(0, 0);
 }
 function initBottomNav() {
@@ -743,7 +889,7 @@ function boot() {
   let savedView = "home";
   try {
     const v = localStorage.getItem("gh-view");
-    if (v === "home" || v === "about") savedView = v;
+    if (v === "home" || v === "about" || v === "repos") savedView = v;
   } catch (e) {}
   if (savedView !== "home") switchView(savedView);
 

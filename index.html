@@ -233,6 +233,7 @@
   footer .mirror-note{margin-top:6px;font-size:12px}
 
   @media (max-width:560px){
+    .wrap{padding:0 12px}
     .card{padding:20px 18px}
     .asset-btn{padding:11px 13px}
     .assets{gap:8px}
@@ -292,7 +293,7 @@
   .repo-card:hover .rc-go svg{transform:translateX(3px)}
   .repo-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
 
-  /* 网页页 —— 强制两列 grid，上下加高，左右收窄 */
+  /* 网页页 —— 强制两列 grid；手机隐藏 URL、大幅收窄水平 */
   #view-pages{display:none;padding:24px 0}
   .pages-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
   .page-tag{
@@ -316,14 +317,14 @@
   .page-tag:hover .pt-go svg{transform:translateX(3px)}
   .pages-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
   @media (max-width:560px){
-    .pages-grid{gap:8px}
-    .page-tag{padding:30px 10px;gap:8px;border-radius:10px}
-    .page-tag .pt-icon{width:28px;height:28px;border-radius:7px}
-    .page-tag .pt-icon svg{width:14px;height:14px}
-    .page-tag .pt-text{gap:2px}
-    .page-tag .pt-name{font-size:12.5px}
-    .page-tag .pt-url{font-size:9.5px}
-    .page-tag .pt-go svg{width:13px;height:13px}
+    .pages-grid{gap:6px}
+    .page-tag{padding:28px 8px;gap:6px;border-radius:10px}
+    .page-tag .pt-icon{width:26px;height:26px;border-radius:7px}
+    .page-tag .pt-icon svg{width:13px;height:13px}
+    .page-tag .pt-text{gap:0}
+    .page-tag .pt-name{font-size:12px}
+    .page-tag .pt-url{display:none}
+    .page-tag .pt-go svg{width:12px;height:12px}
   }
 
 </style>

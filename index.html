@@ -960,7 +960,7 @@ function switchView(view) {
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
-  try { localStorage.setItem("gh-view", view); } catch (e) {}
+  try { sessionStorage.setItem("gh-view", view); } catch (e) {}
   if (view === "repos") loadRepos();
   if (view === "pages") loadPages();
   window.scrollTo(0, 0);
@@ -982,7 +982,7 @@ function boot() {
   // 否则 apps 为空时下面 return 会跳过恢复，刷新永远回首页
   let savedView = "home";
   try {
-    const v = localStorage.getItem("gh-view");
+    const v = sessionStorage.getItem("gh-view");
     if (v === "home" || v === "about" || v === "repos" || v === "pages") savedView = v;
   } catch (e) {}
   if (savedView !== "home") switchView(savedView);

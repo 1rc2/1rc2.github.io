@@ -859,7 +859,7 @@ function pythonCustomHint(cm, options) {
 }
 
 // 合并内置 python-hint 和自定义 hint
-editor.registerHelper('hint', 'python-custom', function(cm) {
+CodeMirror.registerHelper('hint', 'python-custom', function(cm) {
   return pythonCustomHint(cm) || CodeMirror.hint.python(cm);
 });
 

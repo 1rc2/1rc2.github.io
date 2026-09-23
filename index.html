@@ -872,19 +872,56 @@ function renderPages(repos, stale) {
   el.innerHTML = repos.map((r, i) => pageTag(r, i)).join("") +
     (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px;width:100%">网络暂不可用，以上为缓存数据</p>' : "");
 }
+// 检查仓库是否有 index.html（即可部署的网页）
+async function repoHasIndexHtml(repoName) {
+  try {
+    const url = "https://api.github.com/repos/" + CONFIG.user + "/" + repoName + "/contents/index.html";
+    const resp = await fetch(url, { headers: { "Accept": "application/vnd.github+json" } });
+    return resp.status === 200;
+  } catch (e) { return false; }
+}
+// 网页标签缓存：只存"有 index.html 的仓库名"，1 小时有效
+function readPagesCache() {
+  try {
+    const raw = sessionStorage.getItem("gh-pages-cache");
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (Date.now() - obj.ts > 3600000) return null;
+    return obj.names || [];
+  } catch (e) { return null; }
+}
+function writePagesCache(names) {
+  try { sessionStorage.setItem("gh-pages-cache", JSON.stringify({ ts: Date.now(), names: names })); } catch (e) {}
+}
 async function loadPages() {
   const el = $("pages-list");
   if (!el) return;
-  const cached = readReposCache();
-  if (cached && cached.length) renderPages(cached, false);
-  else el.innerHTML = pagesSkeletonHTML();
+  const cachedRepos = readReposCache();
+  const cachedNames = readPagesCache();
+  // 初始渲染：只有当两个缓存都有时才直接显示过滤后的结果，否则显示骨架屏
+  if (cachedRepos && cachedRepos.length && cachedNames) {
+    renderPages(cachedRepos.filter(r => cachedNames.indexOf(r.name) !== -1), false);
+  } else {
+    el.innerHTML = pagesSkeletonHTML();
+  }
   try {
     const repos = await fetchRepos();
     writeReposCache(repos);
-    renderPages(repos, false);
+    let filtered;
+    if (cachedNames) {
+      filtered = repos.filter(r => cachedNames.indexOf(r.name) !== -1);
+    } else {
+      const checks = await Promise.all(repos.map(r => repoHasIndexHtml(r.name)));
+      filtered = repos.filter((r, i) => checks[i]);
+      writePagesCache(filtered.map(r => r.name));
+    }
+    renderPages(filtered, false);
   } catch (err) {
-    if (cached && cached.length) renderPages(cached, true);
-    else el.innerHTML = pagesStateHTML("error", { rateLimit: !!err.rateLimit, message: err.rateLimit ? "" : (err.message || "网络异常") });
+    if (cachedRepos && cachedRepos.length && cachedNames) {
+      renderPages(cachedRepos.filter(r => cachedNames.indexOf(r.name) !== -1), true);
+    } else {
+      el.innerHTML = pagesStateHTML("error", { rateLimit: !!err.rateLimit, message: err.rateLimit ? "" : (err.message || "网络异常") });
+    }
   }
 }
 

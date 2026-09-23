@@ -991,7 +991,11 @@ const ERR_MAP = [
   [/ImportError:\s*(.+)/i,
     (m,msg)=>({type:'导入失败',msg:msg.trim()})],
   [/ModuleNotFoundError:\s*(.+)/i,
-    (m,msg)=>({type:'模块未找到',msg:msg.trim()})],
+    (m,msg)=>{
+      const mm = msg.match(/No module named '([^']+)'/i) || msg.match(/No module named "([^"]+)"/i);
+      const modName = mm ? mm[1] : msg.trim();
+      return {type:'模块未找到', msg:msg.trim(), hint:'远程环境未安装 "'+modName+'" 模块（无网络/无图形界面）。如需运行含此模块的代码，请在本地 Python 环境执行：pip install '+modName};
+    }],
   [/ZeroDivisionError:\s*(.+)/i,
     (m,msg)=>({type:'除以零错误',msg:msg.trim()})],
   [/FileNotFoundError:\s*(.+)/i,
@@ -1088,6 +1092,9 @@ function renderErrorSummary(stderr) {
   }
   if (info.code) html += '<div class="err-pos">错误码：' + escapeHtml(info.code) + '</div>';
   html += '<div style="margin-top:6px">' + escapeHtml(info.msg) + '</div>';
+  if (info.hint) {
+    html += '<div style="margin-top:8px;padding:8px 12px;background:#2a2310;border:1px solid #5a4a1a;border-radius:6px;font-size:13px;line-height:1.6;color:#e8c97a"><span style="font-weight:bold">💡 提示：</span>' + escapeHtml(info.hint) + '</div>';
+  }
   html += '</div>';
   return html;
 }

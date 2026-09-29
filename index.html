@@ -540,13 +540,15 @@ const CONFIG = {
   ],
 
   /* AI 助手配置
-     云端方案：DeepSeek（国内直连，速度快，中文好）
-       1. 注册免费账号：https://platform.deepseek.com
-       2. 创建 API key，复制粘贴到下方 apiKey 引号中
-       3. 新用户送 500 万 token 免费额度，日常问答够用很久
-     未填 key 时自动降级：Pollinations → 本地模型 */
+     推荐：部署 Vercel 代理，key 藏在服务端环境变量，前端不暴露
+       1. 把 ai-proxy 目录推到 GitHub 新仓库
+       2. 在 Vercel 导入，环境变量设置 DEEPSEEK_API_KEY
+       3. 把代理 URL 填到下方 proxyUrl，apiKey 留空
+     详细步骤见 ai-proxy/README.md
+     未配置时自动降级：Pollinations → 本地模型 */
   ai: {
-    apiKey: "",                                    // ← 填入 DeepSeek API key 即启用，如 "sk-xxxxxxxx"
+    proxyUrl: "",                                  // ← Vercel 代理 URL，如 "https://ai-proxy.vercel.app/api/chat"
+    apiKey: "",                                    // 直连模式（不安全，会暴露 key，不推荐）
     endpoint: "https://api.deepseek.com/v1/chat/completions",
     model: "deepseek-chat",
     // 备用云端（无需 key，国内可能不可达）
@@ -1168,20 +1170,23 @@ function extractReply(data) {
   return txt.trim();
 }
 
-/* ① DeepSeek 云端（国内直连） */
+/* ① DeepSeek 云端（通过 Vercel 代理隐藏 key，或直连模式） */
 async function aiDeepSeek(prompt) {
   const cfg = CONFIG.ai;
-  if (!cfg.apiKey) throw new Error("未配置 DeepSeek API key");
+  if (!cfg.proxyUrl && !cfg.apiKey) throw new Error("未配置代理或 API key");
   const messages = [
     { role: "system", content: aiBuildContext() },
     ...AI.history,
     { role: "user", content: prompt }
   ];
-  const resp = await fetchWithTimeout(cfg.endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.apiKey },
-    body: JSON.stringify({ model: cfg.model, messages, max_tokens: 800 })
-  }, cfg.timeout);
+  const useProxy = !!cfg.proxyUrl;
+  const url = useProxy ? cfg.proxyUrl : cfg.endpoint;
+  const headers = { "Content-Type": "application/json" };
+  if (!useProxy && cfg.apiKey) headers["Authorization"] = "Bearer " + cfg.apiKey;
+  const body = useProxy
+    ? JSON.stringify({ messages })
+    : JSON.stringify({ model: cfg.model, messages, max_tokens: 800 });
+  const resp = await fetchWithTimeout(url, { method: "POST", headers, body }, cfg.timeout);
   if (!resp.ok) throw new Error("DeepSeek HTTP " + resp.status);
   return extractReply(await resp.json());
 }
@@ -1280,10 +1285,10 @@ async function aiAsk() {
 }
 
 function aiInit() {
-  const hasKey = !!(CONFIG.ai && CONFIG.ai.apiKey);
-  const greet = hasKey
+  const hasCfg = !!(CONFIG.ai && (CONFIG.ai.proxyUrl || CONFIG.ai.apiKey));
+  const greet = hasCfg
     ? "你好！我是下载中心的AI助手，可以回答关于应用下载、版本更新、镜像源等问题。有什么可以帮你？"
-    : "你好！我是下载中心的AI助手。当前云端AI未配置 API key，回复可能较慢或不可用。如需更好的体验，请在 CONFIG.ai 中填入 DeepSeek API key。现在有什么可以帮你？";
+    : "你好！我是下载中心的AI助手。当前云端未启用（key 安全需要通过 Vercel 代理配置）。部署 Vercel 代理后填入 proxyUrl 即可启用，详见 ai-proxy/README.md。现在有什么可以帮你？";
   aiAddMsg("bot", greet);
   const fab = $("ai-fab"), panel = $("ai-panel"), input = $("ai-input");
   fab.addEventListener("click", () => {

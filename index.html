@@ -537,7 +537,23 @@ const CONFIG = {
   mirrors: [
     { name: "官方直连", prefix: "" },
     { name: "加速下载", prefix: "https://ghproxy.net/" }
-  ]
+  ],
+
+  /* AI 助手配置
+     云端方案：DeepSeek（国内直连，速度快，中文好）
+       1. 注册免费账号：https://platform.deepseek.com
+       2. 创建 API key，复制粘贴到下方 apiKey 引号中
+       3. 新用户送 500 万 token 免费额度，日常问答够用很久
+     未填 key 时自动降级：Pollinations → 本地模型 */
+  ai: {
+    apiKey: "",                                    // ← 填入 DeepSeek API key 即启用，如 "sk-xxxxxxxx"
+    endpoint: "https://api.deepseek.com/v1/chat/completions",
+    model: "deepseek-chat",
+    // 备用云端（无需 key，国内可能不可达）
+    fallbackUrl: "https://text.pollinations.ai/openai",
+    fallbackModel: "openai",
+    timeout: 15000
+  }
 };
 /* ============================================================ */
 
@@ -1085,21 +1101,18 @@ function initBottomNav() {
 }
 
 /* ============================================================
- * AI 助手 —— 云端优先，失败自动降级到本地小模型
- * 方案1：免费云端推理（Pollinations.ai，无 key、无第三方品牌）
- * 方案2：Transformers.js 浏览器本地模型（懒加载，仅降级时拉取）
+ * AI 助手 —— 三层降级，确保国内可用
+ * ① DeepSeek 云端（国内直连，需 API key，速度快、中文好）
+ * ② Pollinations 云端备用（无需 key，国内可能不可达）
+ * ③ Transformers.js 本地模型（最终兜底，懒加载）
  * ============================================================ */
 const AI = {
-  cloudUrl: "https://text.pollinations.ai/openai",
-  cloudModel: "openai",
-  cloudTimeout: 12000,
-  localModel: "Xenova/distilgpt2",     // 小模型，英文为主，仅作兜底
+  localModel: "Xenova/distilgpt2",
   localLoaded: false,
   localPipeline: null,
-  history: [],                          // 对话上下文（最近 10 轮）
+  history: []
 };
 
-/* 注入网页相关上下文，让 AI 能回答本站内容 */
 function aiBuildContext() {
   const apps = (CONFIG.apps && CONFIG.apps.length)
     ? CONFIG.apps.map(a => a.appName).join("、")
@@ -1108,7 +1121,6 @@ function aiBuildContext() {
   return "你是「" + brand + "」下载中心的AI助手。这是一个托管在GitHub Pages的纯前端应用下载中心，通过GitHub Releases API自动同步应用版本与APK/安装包下载地址，支持官方直连与加速镜像切换、本地缓存。请用简洁友好的中文回答用户关于应用下载、版本、镜像源等问题；若用户问无关内容，礼貌引导回本站主题。当前展示应用：" + apps + "。";
 }
 
-/* 悬浮按钮仅首页可见 */
 function aiToggleFab(view) {
   const fab = $("ai-fab");
   const panel = $("ai-panel");
@@ -1141,43 +1153,76 @@ function aiAddTyping() {
   return div;
 }
 
-/* 方案1：云端推理 */
-async function aiCloud(prompt) {
+/* 带 AbortController 的通用 fetch 超时 */
+function fetchWithTimeout(url, opts, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
+/* 从 OpenAI 兼容格式响应提取文本 */
+function extractReply(data) {
+  const txt = data && data.choices && data.choices[0] && data.choices[0].message
+    && data.choices[0].message.content;
+  if (!txt || txt.trim().length < 1) throw new Error("空响应");
+  return txt.trim();
+}
+
+/* ① DeepSeek 云端（国内直连） */
+async function aiDeepSeek(prompt) {
+  const cfg = CONFIG.ai;
+  if (!cfg.apiKey) throw new Error("未配置 DeepSeek API key");
   const messages = [
     { role: "system", content: aiBuildContext() },
     ...AI.history,
     { role: "user", content: prompt }
   ];
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), AI.cloudTimeout);
-  try {
-    const resp = await fetch(AI.cloudUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: AI.cloudModel, messages: messages }),
-      signal: ctrl.signal
-    });
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
-    const data = await resp.json();
-    const txt = data && data.choices && data.choices[0] && data.choices[0].message
-      && data.choices[0].message.content;
-    if (!txt || txt.trim().length < 1) throw new Error("空响应");
-    return txt.trim();
-  } finally { clearTimeout(timer); }
+  const resp = await fetchWithTimeout(cfg.endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + cfg.apiKey },
+    body: JSON.stringify({ model: cfg.model, messages, max_tokens: 800 })
+  }, cfg.timeout);
+  if (!resp.ok) throw new Error("DeepSeek HTTP " + resp.status);
+  return extractReply(await resp.json());
 }
 
-/* 方案2：本地模型（懒加载） */
+/* ② Pollinations 云端备用（无需 key） */
+async function aiPollinations(prompt) {
+  const cfg = CONFIG.ai;
+  const messages = [
+    { role: "system", content: aiBuildContext() },
+    ...AI.history,
+    { role: "user", content: prompt }
+  ];
+  const resp = await fetchWithTimeout(cfg.fallbackUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: cfg.fallbackModel, messages })
+  }, cfg.timeout);
+  if (!resp.ok) throw new Error("Pollinations HTTP " + resp.status);
+  return extractReply(await resp.json());
+}
+
+/* ③ 本地模型（最终兜底，懒加载，多 CDN 源） */
 async function aiLocal(prompt) {
   if (!AI.localLoaded) {
     aiAddMsg("sys", "云端不可用，正在加载本地AI模型（首次较慢）…");
-    const tf = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0");
+    // 依次尝试多个 CDN 源
+    const sources = [
+      "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0",
+      "https://unpkg.com/@huggingface/transformers@3.0.0",
+      "https://cdn.bootcdn.net/ajax/libs/transformers/3.0.0/transformers.min.js"
+    ];
+    let tf = null;
+    for (const src of sources) {
+      try { tf = await import(src); break; } catch (e) { /* 试下一个 */ }
+    }
+    if (!tf) throw new Error("本地模型库加载失败");
     tf.env.allowLocalModels = false;
-    AI.localPipeline = await tf.pipeline("text-generation", AI.localModel,
-      { device: "auto" });
+    AI.localPipeline = await tf.pipeline("text-generation", AI.localModel, { device: "auto" });
     AI.localLoaded = true;
   }
-  const ctx = aiBuildContext();
-  const full = ctx + "\n用户：" + prompt + "\n助手：";
+  const full = aiBuildContext() + "\n用户：" + prompt + "\n助手：";
   const out = await AI.localPipeline(full, { max_new_tokens: 80, temperature: 0.7 });
   let txt = out[0].generated_text || "";
   const idx = txt.lastIndexOf("助手：");
@@ -1185,7 +1230,7 @@ async function aiLocal(prompt) {
   return txt.trim() || "（本地模型未能生成回复，请稍后重试）";
 }
 
-/* 统一入口：云端优先，失败降级本地 */
+/* 统一入口：DeepSeek → Pollinations → 本地，依次降级 */
 async function aiAsk() {
   const input = $("ai-input");
   const prompt = input.value.trim();
@@ -1198,34 +1243,48 @@ async function aiAsk() {
   const typing = aiAddTyping();
   $("ai-send").disabled = true;
   const modeEl = $("ai-mode");
-  let reply, usedLocal = false;
+  let reply = null, mode = "云端";
 
+  // ① DeepSeek
   try {
-    reply = await aiCloud(prompt);
+    reply = await aiDeepSeek(prompt);
+    mode = "DeepSeek";
   } catch (e1) {
-    // 云端失败 → 降级本地
-    usedLocal = true;
-    modeEl.textContent = "本地";
-    modeEl.classList.add("local");
-    typing.querySelector(".ai-typing").replaceWith(
-      document.createTextNode("（云端不可用，切换本地模型…）"));
+    // ② Pollinations
     try {
-      reply = await aiLocal(prompt);
+      reply = await aiPollinations(prompt);
+      mode = "云端";
     } catch (e2) {
-      reply = "抱歉，云端与本地AI均不可用，请检查网络后重试。";
+      // ③ 本地
+      modeEl.textContent = "本地"; modeEl.classList.add("local");
+      typing.querySelector(".ai-typing").replaceWith(
+        document.createTextNode("（云端不可用，切换本地模型…）"));
+      try {
+        reply = await aiLocal(prompt);
+        mode = "本地";
+      } catch (e3) {
+        reply = "AI 暂时不可用。请检查网络，或在 CONFIG.ai 中填入 DeepSeek API key 启用云端。\n获取地址：https://platform.deepseek.com";
+        mode = "离线";
+      }
     }
   }
+
   typing.remove();
   aiAddMsg("bot", reply);
   AI.history.push({ role: "assistant", content: reply });
   if (AI.history.length > 10) AI.history = AI.history.slice(-10);
-  if (!usedLocal) { modeEl.textContent = "云端"; modeEl.classList.remove("local"); }
+  modeEl.textContent = mode;
+  modeEl.classList.toggle("local", mode === "本地" || mode === "离线");
   $("ai-send").disabled = false;
   $("ai-input").focus();
 }
 
 function aiInit() {
-  aiAddMsg("bot", "你好！我是下载中心的AI助手，可以回答关于应用下载、版本更新、镜像源等问题。有什么可以帮你？");
+  const hasKey = !!(CONFIG.ai && CONFIG.ai.apiKey);
+  const greet = hasKey
+    ? "你好！我是下载中心的AI助手，可以回答关于应用下载、版本更新、镜像源等问题。有什么可以帮你？"
+    : "你好！我是下载中心的AI助手。当前云端AI未配置 API key，回复可能较慢或不可用。如需更好的体验，请在 CONFIG.ai 中填入 DeepSeek API key。现在有什么可以帮你？";
+  aiAddMsg("bot", greet);
   const fab = $("ai-fab"), panel = $("ai-panel"), input = $("ai-input");
   fab.addEventListener("click", () => {
     const open = panel.classList.toggle("open");

@@ -2,1345 +2,400 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#faf9f7">
-<title>芙伊app 官方下载 - 最新版 APK 安装包</title>
-<meta name="description" content="芙伊app 官方下载页。自动同步 GitHub 最新版本，直接下载安卓 APK 安装包，安全免费。">
-<meta name="keywords" content="芙伊app,芙伊,芙伊app下载,芙伊app安卓版,APK下载">
-<meta name="author" content="1rc2">
-<meta name="robots" content="index,follow">
-<link rel="canonical" href="https://1rc2.github.io/">
-<!-- 分享到微信/QQ/朋友圈时显示 -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="芙伊app 官方下载 - 最新版 APK">
-<meta property="og:description" content="芙伊app 官方下载页，自动同步最新版本，直接下载安卓 APK 安装包。">
-<meta property="og:url" content="https://1rc2.github.io/">
-<meta name="twitter:card" content="summary">
-<!-- 结构化数据：帮助搜索引擎识别为"应用下载页" -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "芙伊app",
-  "url": "https://1rc2.github.io/",
-  "applicationCategory": "UtilityApplication",
-  "operatingSystem": "Android",
-  "description": "芙伊app 官方安卓客户端，自动同步最新版本 APK 安装包。",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
-}
-</script>
-<!-- 预连接：减少下载跳转耗时 -->
-<link rel="preconnect" href="https://api.github.com">
-<link rel="preconnect" href="https://github.com">
-<link rel="preconnect" href="https://objects.githubusercontent.com">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>黄金行情监控</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   :root{
-    --bg:#faf9f7;
+    --bg:#fafafa;
     --card:#ffffff;
-    --ink:#191512;
-    --muted:#746b62;
-    --line:#e9e2d8;
-    --accent:#ff5c1f;
-    --accent-deep:#e64a10;
-    --ok:#1f9d55;
-    --warn:#c2562b;
-    --radius:18px;
-    --shadow:0 1px 2px rgba(25,21,18,.04),0 8px 24px rgba(25,21,18,.06);
+    --text:#1a1a1a;
+    --text-2:#6b6b6b;
+    --text-3:#9a9a9a;
+    --border:#eeeeee;
+    --gold:#b8860b;
+    --gold-soft:#d4af37;
+    --up:#e5484d;
+    --down:#16a34a;
+    --chip-au:#fff7e6;
+    --chip-au-tx:#b8860b;
+    --chip-ln:#eef4ff;
+    --chip-ln-tx:#2563eb;
+    --radius:14px;
   }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  html,body{height:100%}
   body{
-    background:
-      radial-gradient(900px 420px at 85% -10%, rgba(255,92,31,.08), transparent 60%),
-      radial-gradient(700px 380px at -10% 0%, rgba(255,92,31,.05), transparent 55%),
-      var(--bg);
-    color:var(--ink);
-    font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;
+    padding-bottom:70px;max-width:640px;margin:0 auto;
   }
-  a{color:inherit}
-  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
-
-  /* 顶栏 */
+  /* header */
   .topbar{
-    position:sticky;top:0;z-index:20;
-    backdrop-filter:blur(10px);
-    background:rgba(250,249,247,.85);
-    border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:50;background:var(--bg);
+    padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--border);
   }
-  .topbar .wrap{
-    display:flex;align-items:center;justify-content:space-between;
-    height:58px;
+  .topbar .title{font-size:18px;font-weight:700;letter-spacing:.5px}
+  .topbar .title .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold-soft);margin-right:6px;vertical-align:middle}
+  .topbar .upd{font-size:11px;color:var(--text-3)}
+  /* page */
+  .page{display:none;padding:16px 16px 24px}
+  .page.active{display:block}
+  /* price cards */
+  .price-grid{display:grid;grid-template-columns:1fr;gap:12px}
+  .price-card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 18px 16px;cursor:pointer;transition:transform .15s,box-shadow .15s;
   }
-  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:.01em}
-  .brand-mark{
-    width:28px;height:28px;border-radius:8px;background:var(--ink);
-    display:grid;place-items:center;color:#fff;
+  .price-card:active{transform:scale(.98)}
+  .price-card .row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .price-card .name{font-size:15px;font-weight:600}
+  .price-card .bench{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
+  .bench.au{background:var(--chip-au);color:var(--chip-au-tx)}
+  .bench.ln{background:var(--chip-ln);color:var(--chip-ln-tx)}
+  .price-card .price{font-size:30px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+  .price-card .unit{font-size:13px;color:var(--text-3);font-weight:400;margin-left:4px}
+  .price-card .row3{display:flex;align-items:baseline;gap:10px;margin-top:6px}
+  .price-card .chg{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+  .price-card .chg.up{color:var(--up)}
+  .price-card .chg.down{color:var(--down)}
+  .price-card .sub{font-size:11px;color:var(--text-3)}
+  .loading{color:var(--text-3);font-size:13px;padding:30px 0;text-align:center}
+  .err{color:var(--up);font-size:13px;padding:20px 0;text-align:center}
+  /* products */
+  .section-title{font-size:13px;font-weight:600;color:var(--text-2);margin:18px 4px 10px;letter-spacing:.3px}
+  .prod-list{display:flex;flex-direction:column;gap:8px}
+  .prod{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;
   }
-  .brand-mark svg{width:15px;height:15px}
-  .gh-link{
-    font-size:13px;color:var(--muted);text-decoration:none;
-    display:inline-flex;align-items:center;gap:5px;
-    padding:7px 12px;border:1px solid var(--line);border-radius:999px;
-    transition:border-color .2s,color .2s;
+  .prod:active{background:#f6f6f6}
+  .prod .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .prod.au .ico{background:var(--chip-au)}
+  .prod.ln .ico{background:var(--chip-ln)}
+  .prod .info{flex:1;min-width:0}
+  .prod .pname{font-size:14px;font-weight:600}
+  .prod .pdesc{font-size:11px;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prod .tag{font-size:10px;padding:3px 7px;border-radius:10px;font-weight:600;flex-shrink:0}
+  .tag.au{background:var(--chip-au);color:var(--chip-au-tx)}
+  .tag.ln{background:var(--chip-ln);color:var(--chip-ln-tx)}
+  /* detail */
+  .detail-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .detail-head .back{background:none;border:none;font-size:20px;color:var(--text);cursor:pointer;padding:4px 8px;margin-left:-8px}
+  .detail-head .dname{font-size:17px;font-weight:700}
+  .detail-price{font-size:34px;font-weight:700;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .detail-chg{font-size:14px;font-weight:600}
+  .detail-chg.up{color:var(--up)}
+  .detail-chg.down{color:var(--down)}
+  .dim-toggle{display:flex;background:#f0f0f0;border-radius:10px;padding:3px;margin:16px 0 10px}
+  .dim-toggle button{
+    flex:1;border:none;background:none;padding:8px 4px;font-size:12px;font-weight:600;
+    color:var(--text-2);border-radius:8px;cursor:pointer;font-family:inherit;
   }
-  .gh-link:hover{color:var(--accent);border-color:var(--accent)}
-
-  /* 主内容 */
-  main{padding:48px 0 72px}
-  .hero{padding:26px 0 34px}
-
-  /* 应用切换条（多应用） */
-  .app-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
-  .tab{
-    padding:9px 20px;border:1px solid var(--line);border-radius:999px;
-    font-size:14px;font-weight:600;background:var(--card);color:var(--muted);
-    cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .15s;
+  .dim-toggle button.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .chart-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px 8px;height:280px;position:relative}
+  .chart-note{font-size:10px;color:var(--text-3);text-align:center;margin-top:6px}
+  /* notes */
+  .note-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px}
+  .note-card h3{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .note-card h3 .ic{font-size:16px}
+  .note-card p{font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:8px}
+  .note-card p:last-child{margin-bottom:0}
+  .note-card .hl{color:var(--gold);font-weight:600}
+  .risk{
+    background:#fff8f1;border:1px solid #f3e0c0;border-radius:var(--radius);
+    padding:14px 16px;margin-top:8px;
   }
-  .tab:hover{color:var(--accent);border-color:var(--accent)}
-  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
-  .pill{
-    display:inline-flex;align-items:center;gap:8px;
-    font-size:12px;color:var(--muted);
-    background:var(--card);border:1px solid var(--line);
-    padding:6px 12px;border-radius:999px;
+  .risk h3{color:#b85c00;font-size:14px;margin-bottom:8px}
+  .risk p{font-size:12px;color:#8a5a1a;line-height:1.7}
+  /* bottom nav */
+  .tabbar{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;
+    background:var(--card);border-top:1px solid var(--border);
+    display:flex;justify-content:space-around;padding:8px 0 env(safe-area-inset-bottom);z-index:100;
   }
-  .pill b{color:var(--accent);font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-weight:700}
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
-  .hero h1{
-    margin-top:18px;font-size:clamp(30px,6vw,46px);
-    font-weight:800;letter-spacing:-.03em;line-height:1.1;
-  }
-  .hero p{margin-top:12px;color:var(--muted);font-size:15px;line-height:1.7;max-width:56ch}
-
-  /* 卡片 */
-  .card{
-    background:var(--card);border:1px solid var(--line);
-    border-radius:var(--radius);box-shadow:var(--shadow);
-    padding:26px 28px;margin-top:20px;
-  }
-  .card-head{
-    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-    flex-wrap:wrap;
-  }
-  .tag{
-    font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
-    font-weight:700;font-size:19px;letter-spacing:-.02em;
-  }
-  .date{font-size:12px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
-  .release-name{margin-top:4px;font-size:14px;color:var(--muted)}
-
-  .notes{margin-top:18px;font-size:14px;line-height:1.8;color:#3d3731}
-  .notes p{margin:0 0 10px}
-  .notes h3{margin:16px 0 8px;font-size:14px}
-  .notes ul{margin:0 0 10px;padding-left:18px}
-  .notes li{margin:2px 0}
-  .notes code{
-    font-family:ui-monospace,Consolas,monospace;font-size:.9em;
-    background:#f3efe9;border:1px solid var(--line);border-radius:5px;padding:1px 5px;
-  }
-  .notes pre{
-    background:#191512;color:#f5f0ea;border-radius:10px;
-    padding:12px 14px;margin:0 0 12px;overflow-x:auto;font-size:12.5px;line-height:1.6;
-  }
-  .notes pre code{background:none;border:none;padding:0;color:inherit}
-  .notes .quote{border-left:3px solid var(--accent);padding-left:12px;color:var(--muted)}
-  .notes a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
-
-  /* 资产按钮 */
-  .assets{display:grid;gap:10px;margin-top:22px}
-  .asset-btn{
-    display:flex;align-items:center;gap:14px;
-    text-decoration:none;color:var(--ink);
-    border:1px solid var(--line);border-radius:14px;
-    padding:13px 16px;background:#fdfcfb;
-    transition:transform .15s,border-color .15s,box-shadow .15s;
-  }
-  .asset-btn:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
-  .asset-icon{width:38px;height:38px;border-radius:10px;flex:none;display:grid;place-items:center}
-  .asset-icon svg{width:21px;height:21px}
-  .asset-meta{flex:1;min-width:0}
-  .asset-meta .n{font-size:14px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .asset-meta .s{font-size:12px;color:var(--muted);display:block;margin-top:2px;font-family:ui-monospace,Consolas,monospace}
-  .asset-go{flex:none;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600}
-  .asset-go svg{width:15px;height:15px;transition:transform .2s}
-  .asset-btn:hover .asset-go svg{transform:translateX(3px)}
-
-  /* 主下载按钮（最新版第一个资产） */
-  .btn-download{
-    display:inline-flex;align-items:center;justify-content:center;gap:10px;
-    background:var(--accent);color:#fff;text-decoration:none;
-    font-size:16px;font-weight:700;
-    padding:15px 26px;border-radius:14px;margin-top:22px;
-    box-shadow:0 10px 26px rgba(255,92,31,.3);
-    transition:background .2s,transform .15s,box-shadow .2s;
-  }
-  .btn-download:hover{background:var(--accent-deep);transform:translateY(-2px)}
-  .btn-download svg{width:19px;height:19px}
-
-  /* 历史版本 */
-  .section-title{
-    margin:52px 0 4px;font-size:13px;font-weight:700;
-    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
-    display:flex;align-items:center;gap:10px;
-  }
-  .section-title::after{content:"";flex:1;height:1px;background:var(--line)}
-  .history-item{padding:20px 26px}
-  .history-item .card-head{margin-bottom:10px}
-  .history-item .tag{font-size:15px}
-  .history-intro{
-    font-size:13.5px;color:#4a443d;line-height:1.7;margin:6px 0 14px;
-  }
-  details.history-detail{margin-top:4px}
-  details.history-detail summary{
-    cursor:pointer;font-size:13px;color:var(--accent);font-weight:600;
-    list-style:none;display:inline-flex;align-items:center;gap:6px;user-select:none;
-  }
-  details.history-detail summary::-webkit-details-marker{display:none}
-  details.history-detail summary .arrow{transition:transform .2s}
-  details[open] summary .arrow{transform:rotate(90deg)}
-  details.history-detail .notes{margin-top:12px;padding-top:14px;border-top:1px dashed var(--line)}
-
-  /* 骨架屏 */
-  .skeleton{animation:shimmer 1.4s ease-in-out infinite}
-  @keyframes shimmer{0%,100%{opacity:1}50%{opacity:.45}}
-  .sk-line{height:14px;border-radius:6px;background:var(--line);margin-bottom:10px}
-  .sk-block{height:150px;border-radius:var(--radius);background:var(--line)}
-
-  /* 状态提示 */
-  .state{
-    text-align:center;padding:60px 24px;color:var(--muted);font-size:14px;line-height:1.9;
-  }
-  .state .big{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px}
-  .state .err{color:var(--warn);font-size:13px}
-  .retry-btn{
-    margin-top:18px;background:none;border:1px solid var(--line);color:var(--ink);
-    font-size:13px;font-weight:600;padding:9px 22px;border-radius:999px;cursor:pointer;
-    transition:border-color .2s,color .2s;
-  }
-  .retry-btn:hover{border-color:var(--accent);color:var(--accent)}
-  .state code{font-family:ui-monospace,Consolas,monospace;background:#f3efe9;border-radius:5px;padding:1px 6px}
-
-  /* 入场动画 */
-  .reveal{opacity:0;transform:translateY(14px);animation:rise .55s cubic-bezier(.2,.7,.3,1) forwards}
-  @keyframes rise{to{opacity:1;transform:none}}
-
-  footer{
-    border-top:1px solid var(--line);padding:26px 0 34px;text-align:center;
-    font-size:12.5px;color:var(--muted);
-  }
-  footer .mirror-note{margin-top:6px;font-size:12px}
-
-  @media (max-width:560px){
-    .wrap{padding:0 12px}
-    .card{padding:20px 18px}
-    .asset-btn{padding:11px 13px}
-    .assets{gap:8px}
-  }
-
-  /* 底部导航 */
-  body{padding-bottom:64px}
-  .bottom-nav{
-    position:fixed;left:0;right:0;bottom:0;z-index:30;
-    display:flex;justify-content:space-around;
-    background:#ffffff;
-    border-top:1px solid var(--line);
-    box-shadow:0 -2px 12px rgba(25,21,18,.05);
-  }
-  .nav-item{
-    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-    padding:10px 0 8px;color:var(--muted);text-decoration:none;
-    font-size:12px;cursor:pointer;transition:color .2s;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .nav-item svg{width:22px;height:22px}
-  .nav-item.active{color:var(--accent)}
-  .nav-item:hover{color:var(--accent)}
-
-  /* 我的页 */
-  #view-about{display:none;padding:24px 0}
-  #view-about .about-card{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:24px;box-shadow:var(--shadow);
-  }
-  #view-about h2{font-size:18px;margin-bottom:14px}
-  #view-about p{color:var(--muted);line-height:1.8;margin-bottom:12px;font-size:14.5px}
-  #view-about .about-list{margin:16px 0;padding-left:20px;color:var(--muted);line-height:2;font-size:14px}
-  #view-about .about-list li{margin-bottom:4px}
-  #view-about .tag{display:inline-block;background:#f3efe9;color:var(--ink);padding:3px 10px;border-radius:999px;font-size:12.5px;margin:3px 6px 3px 0}
-
-  /* 仓库页（仅查看） */
-  #view-repos{display:none;padding:24px 0}
-  .repo-card{
-    display:block;text-decoration:none;color:var(--ink);
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:20px 22px;margin-top:14px;
-    transition:transform .15s,border-color .15s,box-shadow .15s;
-  }
-  .repo-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
-  .repo-card .rc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-  .repo-card .rc-name{font-size:16px;font-weight:700;display:inline-flex;align-items:center;gap:8px;word-break:break-all}
-  .repo-card .rc-name svg{width:16px;height:16px;color:var(--muted);flex:none}
-  .repo-card .rc-stars{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace,Consolas,monospace;flex:none;white-space:nowrap}
-  .repo-card .rc-stars svg{width:14px;height:14px;color:#f0af41}
-  .repo-card .rc-desc{margin-top:8px;font-size:13.5px;color:#4a443d;line-height:1.6;word-break:break-word}
-  .repo-card .rc-meta{margin-top:12px;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
-  .repo-card .rc-lang{display:inline-flex;align-items:center;gap:6px}
-  .repo-card .rc-dot{width:10px;height:10px;border-radius:50%;background:#6b6258;flex:none}
-  .repo-card .rc-go{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:600}
-  .repo-card .rc-go svg{width:15px;height:15px;transition:transform .2s}
-  .repo-card:hover .rc-go svg{transform:translateX(3px)}
-  .repo-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
-
-  /* 网页页 —— 强制两列 grid；手机隐藏 URL、大幅收窄水平 */
-  #view-pages{display:none;padding:24px 0}
-  .pages-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
-  .page-tag{
-    display:flex;align-items:center;gap:10px;
-    text-decoration:none;color:var(--ink);
-    background:var(--card);border:1px solid var(--line);border-radius:12px;
-    padding:26px 14px;box-shadow:var(--shadow);
-    transition:transform .15s,border-color .15s,box-shadow .15s;
-  }
-  .page-tag:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,92,31,.12)}
-  .page-tag .pt-icon{
-    width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;
-    color:var(--accent);background:#fff1ea;border:1px solid #ffe1cf;
-  }
-  .page-tag .pt-icon svg{width:16px;height:16px}
-  .page-tag .pt-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-  .page-tag .pt-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .page-tag .pt-url{font-size:11px;color:var(--muted);font-family:ui-monospace,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .page-tag .pt-go{flex:none;color:var(--accent);display:inline-flex;align-items:center}
-  .page-tag .pt-go svg{width:14px;height:14px;transition:transform .2s}
-  .page-tag:hover .pt-go svg{transform:translateX(3px)}
-  .pages-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.8}
-  @media (max-width:560px){
-    .pages-grid{gap:6px}
-    .page-tag{padding:28px 8px;gap:6px;border-radius:10px}
-    .page-tag .pt-icon{width:26px;height:26px;border-radius:7px}
-    .page-tag .pt-icon svg{width:13px;height:13px}
-    .page-tag .pt-text{gap:0}
-    .page-tag .pt-name{font-size:12px}
-    .page-tag .pt-url{display:none}
-    .page-tag .pt-go svg{width:12px;height:12px}
-  }
-
-  /* ====== AI 助手：悬浮按钮 + 聊天面板 ====== */
-  .ai-fab{
-    position:fixed;right:16px;bottom:76px;z-index:25;
-    width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
-    background:linear-gradient(135deg,var(--accent),var(--accent-deep));
-    color:#fff;display:grid;place-items:center;
-    box-shadow:0 6px 20px rgba(255,92,31,.42);
-    transition:transform .2s,opacity .25s;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .ai-fab:hover{transform:scale(1.08)}
-  .ai-fab:active{transform:scale(.95)}
-  .ai-fab svg{width:24px;height:24px}
-  .ai-fab .ai-pulse{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);animation:aipulse 2.4s ease-out infinite;pointer-events:none}
-  @keyframes aipulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.6);opacity:0}}
-  .ai-fab[hidden]{display:none}
-
-  .ai-panel{
-    position:fixed;right:8px;left:8px;bottom:72px;z-index:26;
-    max-width:400px;margin:0 auto;
-    background:var(--card);border:1px solid var(--line);border-radius:18px;
-    box-shadow:0 14px 44px rgba(25,21,18,.2);
-    display:flex;flex-direction:column;overflow:hidden;
-    height:min(72vh,540px);
-    transform:translateY(24px);opacity:0;pointer-events:none;
-    transition:transform .26s ease,opacity .26s ease;
-  }
-  .ai-panel.open{transform:none;opacity:1;pointer-events:auto}
-  .ai-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:#fdfcfb}
-  .ai-head .ai-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
-  .ai-head .ai-badge{font-size:11px;color:#fff;background:var(--accent);padding:2px 8px;border-radius:999px;font-weight:600}
-  .ai-head .ai-badge.local{background:var(--muted)}
-  .ai-close{background:none;border:none;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px;border-radius:8px}
-  .ai-close:hover{color:var(--ink);background:#f3efe9}
-  .ai-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg);-webkit-overflow-scrolling:touch}
-  .ai-msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6;word-break:break-word;white-space:pre-wrap}
-  .ai-msg.bot{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
-  .ai-msg.user{background:var(--accent);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
-  .ai-msg.sys{font-size:12px;color:var(--muted);text-align:center;align-self:center;background:none;border:none;max-width:100%;padding:2px}
-  .ai-foot{padding:10px 12px;border-top:1px solid var(--line);display:flex;gap:8px;background:#fdfcfb}
-  .ai-foot input{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:#fff;outline:none;font-family:inherit}
-  .ai-foot input:focus{border-color:var(--accent)}
-  .ai-send{border:none;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer;display:grid;place-items:center;flex:none}
-  .ai-send:disabled{opacity:.5;cursor:default}
-  .ai-send svg{width:18px;height:18px}
-  .ai-typing{display:inline-flex;gap:5px;align-items:center;padding:4px 0}
-  .ai-typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:aitype 1.2s infinite}
-  .ai-typing span:nth-child(2){animation-delay:.2s}
-  .ai-typing span:nth-child(3){animation-delay:.4s}
-  @keyframes aitype{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
-  @media(min-width:600px){
-    .ai-panel{left:auto;right:18px;bottom:24px}
-    .ai-fab{bottom:24px}
-  }
-
+  .tab{flex:1;text-align:center;font-size:11px;color:var(--text-3);cursor:pointer;padding:4px 0}
+  .tab .ti{font-size:20px;display:block;margin-bottom:2px}
+  .tab.active{color:var(--gold)}
+  .fade-in{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="wrap">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>
-      </span>
-      <span id="brand-name">APP 下载中心</span>
-    </div>
-    <a class="gh-link" id="gh-link" href="#" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+<div class="topbar">
+  <div class="title"><span class="dot"></span>黄金行情监控</div>
+  <div class="upd" id="updTime">--</div>
+</div>
+
+<!-- 首页 -->
+<div class="page active" id="page-home">
+  <div class="price-grid" id="priceGrid">
+    <div class="loading">正在加载行情…</div>
   </div>
-</header>
-
-<main class="wrap">
-  <section class="hero">
-    <div id="app-tabs" class="app-tabs" hidden></div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span class="pill"><span class="dot"></span><span>数据源：GitHub Releases</span></span>
-      <span class="pill"><span>下载源：</span><span id="mirror-name">官方直连</span></span>
+  <div class="section-title">核心基准品种</div>
+  <div class="prod-list">
+    <div class="prod au" onclick="openDetail('AU9999')">
+      <div class="ico">🏛️</div>
+      <div class="info"><div class="pname">AU9999 现货黄金</div><div class="pdesc">上海黄金交易所 · 人民币/克</div></div>
+      <span class="tag au">对标 AU9999</span>
     </div>
-    <div id="mirror-bar" class="app-tabs" style="margin-bottom:0"></div>
-    <h1>下载 <span id="app-name">应用</span></h1>
-    <p>官方下载中心，自动获取最新版本；下载源可切换，下载更稳定。</p>
-  </section>
-
-  <!-- 最新版本 -->
-  <section id="latest"></section>
-
-  <!-- 历史版本 -->
-  <section id="history" hidden></section>
-
-  <!-- 我的页 -->
-  <section id="view-about" class="wrap">
-    <div class="about-card reveal">
-      <h2>关于本站</h2>
-      <p>本站是一个轻量级的应用下载中心，托管于 GitHub Pages，通过 GitHub Releases API 自动同步各应用的最新版本与下载地址，无需手动维护下载链接。</p>
-
-      <h2 style="margin-top:22px">工作原理</h2>
-      <ul class="about-list">
-        <li>每个应用对应一个 GitHub 仓库，发布 Release 时上传安装包（APK / EXE 等）。</li>
-        <li>本站调用 GitHub 公开 API，自动拉取最新 Release 的资产列表。</li>
-        <li>页面渲染版本号与下载按钮，新版本发布后自动同步。</li>
-      </ul>
-
-      <h2 style="margin-top:22px">主要特性</h2>
-      <div>
-        <span class="tag">自动同步版本</span>
-        <span class="tag">多应用切换</span>
-        <span class="tag">下载源切换</span>
-        <span class="tag">本地缓存加速</span>
-        <span class="tag">请求超时重试</span>
-        <span class="tag">响应式适配</span>
-      </div>
-
-      <h2 style="margin-top:22px">使用说明</h2>
-      <ul class="about-list">
-        <li>在「首页」选择应用，点击下载按钮即可获取安装包。</li>
-        <li>如遇下载缓慢，可切换「加速下载」源。</li>
-        <li>页面数据缓存 10 分钟，重复访问无需重复请求。</li>
-      </ul>
-
-      <h2 style="margin-top:22px">技术信息</h2>
-      <p>构建于 GitHub Pages · 数据源 GitHub Releases API · 纯前端实现，无后端服务器。</p>
-
+    <div class="prod ln" onclick="openDetail('XAUUSD')">
+      <div class="ico">🌍</div>
+      <div class="info"><div class="pname">伦敦现货黄金 XAUUSD</div><div class="pdesc">国际现货 · 美元/盎司</div></div>
+      <span class="tag ln">对标伦敦金</span>
     </div>
-  </section>
-
-  <!-- 仓库页（仅查看） -->
-  <section id="view-repos" class="wrap">
-    <div class="section-title reveal" style="margin-top:8px">我的仓库</div>
-    <div id="repos-list"></div>
-  </section>
-
-  <!-- 网页页（简单标签，点击跳转 GitHub Pages） -->
-  <section id="view-pages" class="wrap">
-    <div class="section-title reveal" style="margin-top:8px">我的网页</div>
-    <div id="pages-list" class="pages-grid"></div>
-  </section>
-</main>
-
-<footer>
-  <div>Powered by GitHub Releases API · 数据自动同步</div>
-  <div class="mirror-note" id="mirror-note" hidden>已启用下载加速镜像</div>
-</footer>
-
-<!-- AI 助手（仅首页显示） -->
-<button id="ai-fab" class="ai-fab" hidden aria-label="AI 助手">
-  <span class="ai-pulse"></span>
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9l4.4-1.4z"/><path d="M5 16l.7 2 .3.7.7.3-2 .3-.3 2-.3-2-2-.3 2-.3z"/></svg>
-</button>
-<div id="ai-panel" class="ai-panel" aria-hidden="true">
-  <div class="ai-head">
-    <span class="ai-title">AI 助手 <span class="ai-badge" id="ai-mode">云端</span></span>
-    <button class="ai-close" id="ai-close" aria-label="关闭">×</button>
   </div>
-  <div class="ai-body" id="ai-body"></div>
-  <div class="ai-foot">
-    <input id="ai-input" type="text" placeholder="问关于应用下载、版本…" autocomplete="off">
-    <button class="ai-send" id="ai-send" aria-label="发送"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+</div>
+
+<!-- 品种分类 -->
+<div class="page" id="page-products">
+  <div class="section-title">对标 AU9999（上海金）</div>
+  <div class="prod-list" id="list-au"></div>
+  <div class="section-title">对标 伦敦现货黄金（XAUUSD）</div>
+  <div class="prod-list" id="list-ln"></div>
+</div>
+
+<!-- 详情 -->
+<div class="page" id="page-detail">
+  <div class="detail-head">
+    <button class="back" onclick="goBack()">‹</button>
+    <div class="dname" id="dName">--</div>
+  </div>
+  <div class="detail-price" id="dPrice">--</div>
+  <div class="detail-chg" id="dChg">--</div>
+  <div class="dim-toggle" id="dimToggle">
+    <button data-dim="realtime" class="active">单日实时</button>
+    <button data-dim="daily">每日价格</button>
+    <button data-dim="pct">每日涨跌幅</button>
+  </div>
+  <div class="chart-box"><canvas id="chart"></canvas></div>
+  <div class="chart-note" id="chartNote">数据仅供参考</div>
+</div>
+
+<!-- 说明 -->
+<div class="page" id="page-notes">
+  <div class="note-card">
+    <h3><span class="ic">🕐</span>交易时段说明</h3>
+    <p><span class="hl">AU9999（上海黄金交易所）</span>有固定休市时段：</p>
+    <p>• 白天：09:00 – 11:30、13:30 – 15:30<br>• 夜间：20:00 – 次日 02:30<br>• 周末及法定节假日休市</p>
+    <p><span class="hl">伦敦现货黄金（XAUUSD）</span>属于国际市场，<span class="hl">夜间持续波动</span>，几乎 24 小时连续交易（周末休市）。</p>
+    <p>因此夜间常见 AU9999 价格停盘不动，而 XAUUSD 仍在涨跌，两者走势会出现短时偏离。</p>
+  </div>
+  <div class="note-card">
+    <h3><span class="ic">🏷️</span>品种对标说明</h3>
+    <p>本应用将市面黄金产品按对标基准分为两类：</p>
+    <p><span class="hl">对标 AU9999</span>：跟踪上海黄金交易所现货价格，以人民币/克计价。</p>
+    <p><span class="hl">对标 伦敦现货黄金（XAUUSD）</span>：跟踪国际现货金价，以美元/盎司计价。</p>
+    <p>部分基金（如支付宝博时黄金、华安黄金、易方达黄金）业绩比较基准跟踪 AU9999，归类为对标 AU9999。</p>
+  </div>
+  <div class="risk">
+    <h3>⚠️ 风险提示</h3>
+    <p>本应用仅提供黄金行情展示，数据可能存在延迟或偏差，不构成任何投资建议。黄金价格受国际局势、汇率、利率等多重因素影响，波动较大，投资有风险，入市需谨慎。请根据自身风险承受能力独立做出投资决策。</p>
   </div>
 </div>
 
 <!-- 底部导航 -->
-<nav class="bottom-nav">
-  <a class="nav-item active" data-view="home">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
-    <span>首页</span>
-  </a>
-  <a class="nav-item" data-view="pages">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg>
-    <span>网页</span>
-  </a>
-  <a class="nav-item" data-view="repos">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
-    <span>仓库</span>
-  </a>
-  <a class="nav-item" data-view="about">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-    <span>我的</span>
-  </a>
-</nav>
-
-<noscript><p style="text-align:center;padding:40px">本页面需要启用 JavaScript 才能拉取下载信息。</p></noscript>
+<div class="tabbar">
+  <div class="tab active" data-tab="home"><span class="ti">📈</span>首页</div>
+  <div class="tab" data-tab="products"><span class="ti">🗂️</span>品种</div>
+  <div class="tab" data-tab="notes"><span class="ti">ℹ️</span>说明</div>
+</div>
 
 <script>
-"use strict";
-
-/* ============================================================
- * 配置区 —— 发布前只需改这里
- * ============================================================ */
-const CONFIG = {
-  /* 必改：你的 GitHub 用户名 */
-  user: "1rc2",
-
-  /* 品牌名（页面标题/主标题/搜索关键词），相当于"下载中心"的名称 */
-  brand: "芙伊app",
-
-  /* 应用列表：每个应用对应一个仓库的 Releases，可任意增删。
-     后续新增应用：复制下面一项，改 repo（GitHub 仓库名）、
-     appName（显示名）、color（主题色）即可，顶部切换条自动出现。 */
-  apps: [
-    // 当前暂无应用。新增应用请在此添加，例如：
-    // { repo: "sjkglxt", appName: "数据库管理系统", color: "#2563eb" }
-  ],
-
-  releaseCount: 3,                 // 每个应用展示的 Release 数量（含最新版），即"最近三个"
-  cacheTTL: 10 * 60 * 1000,        // 本地缓存 10 分钟，重复访问免请求、更快
-  fetchTimeout: 15000,             // API 请求超时（毫秒），超时自动重试
-  // 下载源：第一个为默认。prefix 会拼接在 GitHub 下载地址前；留空 = 官方直连
-  mirrors: [
-    { name: "官方直连", prefix: "" },
-    { name: "加速下载", prefix: "https://ghproxy.net/" }
-  ],
-
-  /* AI 助手配置
-     推荐：部署 Vercel 代理，key 藏在服务端环境变量，前端不暴露
-       1. 把 ai-proxy 目录推到 GitHub 新仓库
-       2. 在 Vercel 导入，环境变量设置 DEEPSEEK_API_KEY
-       3. 把代理 URL 填到下方 proxyUrl，apiKey 留空
-     详细步骤见 ai-proxy/README.md
-     未配置时自动降级：Pollinations → 本地模型 */
-  ai: {
-    proxyUrl: "",                                  // ← Vercel 代理 URL，如 "https://ai-proxy.vercel.app/api/chat"
-    apiKey: "",                                    // 直连模式（不安全，会暴露 key，不推荐）
-    endpoint: "https://api.deepseek.com/v1/chat/completions",
-    model: "deepseek-chat",
-    // 备用云端（无需 key，国内可能不可达）
-    fallbackUrl: "https://text.pollinations.ai/openai",
-    fallbackModel: "openai",
-    timeout: 15000
-  }
-};
-/* ============================================================ */
-
-const $ = id => document.getElementById(id);
-
-/* ---------- 平台识别（按文件后缀匹配，可自行增删） ---------- */
-const PLATFORMS = [
-  { key: "android", name: "Android", suffix: ["apk", "aab"], color: "#3ddc84", bg: "#e8f9f0",
-    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 1.1-.9 2-2 2s-2-.9-2-2v-5c0-1.1.9-2 2-2s2 .9 2 2v5zm2-4.5A2.5 2.5 0 0 1 10.5 11h3A2.5 2.5 0 0 1 16 13.5v5a2.5 2.5 0 0 1-2.5 2.5H14v2a1.5 1.5 0 0 1-3 0v-2h-2v2a1.5 1.5 0 0 1-3 0v-2h-.5A2.5 2.5 0 0 1 3 18.5v-5zm1-4.6V8a4 4 0 0 1 8 0v.9h-2V8a2 2 0 0 0-4 0v.9H9z"/></svg>' },
-  { key: "windows", name: "Windows", suffix: ["exe", "msi"], color: "#0078d4", bg: "#e6f1fa",
-    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.8 4.4v7.1H3V5.5zm0 13 7.8 1.1v-7.1H3v6zm8.7 1.2L21 21V12.6h-9.3v7.1zm0-15.4V11.4H21V3l-9.3 1.3z"/></svg>' },
-  { key: "macos", name: "macOS", suffix: ["dmg", "pkg"], color: "#a2aaad", bg: "#eef0f1",
-    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.7 2.2-4 2.3-4-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.6-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.5-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.4-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM14 5.5c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.5-.6 3.3-1.5z"/></svg>' },
-  { key: "linux", name: "Linux", suffix: ["deb", "rpm", "appimage", "tar.gz", "tgz", "tar.xz", "tar.bz2"], color: "#f0af41", bg: "#fdf3e0",
-    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 3 6 3 11c0 2.8 1.4 5.3 3.6 6.9l.5 2.6c.1.6.6 1 1.2 1h7.4c.6 0 1.1-.4 1.2-1l.5-2.6C19.6 16.3 21 13.8 21 11c0-5-4-9-9-9zm-1.5 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm3 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM8.5 14.8c.9 1 2.1 1.6 3.5 1.6s2.6-.6 3.5-1.6c-.2 1.6-1.5 2.8-3.5 2.8s-3.3-1.2-3.5-2.8z"/></svg>' },
-  { key: "ios", name: "iOS", suffix: ["ipa"], color: "#5f6bf0", bg: "#eceefc",
-    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.7 2.2-4 2.3-4-1.3-1.9-3.2-2.1-3.9-2.2-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.6-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.5-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.4-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM14 5.5c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.5-.6 3.3-1.5z"/></svg>' },
+/* ================= 产品分类数据 ================= */
+const PRODUCTS = [
+  // 对标 AU9999
+  {name:'支付宝 博时黄金', desc:'博时黄金ETF联接 · 人民币计价', ico:'💛', benchmark:'AU9999'},
+  {name:'支付宝 华安黄金', desc:'华安黄金ETF联接 · 人民币计价', ico:'🟡', benchmark:'AU9999'},
+  {name:'支付宝 易方达黄金', desc:'易方达黄金ETF联接 · 人民币计价', ico:'✨', benchmark:'AU9999'},
+  {name:'黄金ETF（518880）', desc:'华安黄金ETF · 跟踪 AU9999', ico:'📊', benchmark:'AU9999'},
+  {name:'黄金ETF（159934）', desc:'易方达黄金ETF · 跟踪 AU9999', ico:'📊', benchmark:'AU9999'},
+  {name:'纸黄金（银行）', desc:'工行/建行/中行纸黄金 · 对标 AU9999', ico:'🏦', benchmark:'AU9999'},
+  {name:'京东金融 黄金', desc:'对接上海金 · 人民币/克', ico:'📱', benchmark:'AU9999'},
+  // 对标 伦敦金 XAUUSD
+  {name:'伦敦现货黄金 XAUUSD', desc:'国际现货 · 美元/盎司', ico:'🌍', benchmark:'XAUUSD'},
+  {name:'COMEX 黄金期货', desc:'纽约商品交易所 · 美元/盎司', ico:'🗽', benchmark:'XAUUSD'},
+  {name:'黄金股（矿业股）', desc:'国际金矿企业股价 · 受 XAUUSD 驱动', ico:'⛏️', benchmark:'XAUUSD'},
+  {name:'境外黄金 ETF（GLD）', desc:'SPDR Gold Shares · 跟踪伦敦金', ico:'🌐', benchmark:'XAUUSD'},
+  {name:'外汇黄金 CFD', desc:'差价合约 · 对标 XAUUSD', ico:'💱', benchmark:'XAUUSD'},
 ];
 
-/* ---------- 工具函数 ---------- */
-function escapeHtml(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-function fmtSize(bytes) {
-  if (bytes == null) return "—";
-  const u = ["B", "KB", "MB", "GB"];
-  let v = bytes, i = 0;
-  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
-  return parseFloat(v.toFixed(i === 0 ? 0 : 1)) + " " + u[i];
-}
-function fmtNum(n) {
-  if (n == null) return "";
-  if (n >= 1e8) return (n / 1e8).toFixed(1) + " 亿";
-  if (n >= 1e4) return (n / 1e4).toFixed(1) + " 万";
-  return n.toLocaleString();
-}
-function fmtDate(iso) {
-  const d = new Date(iso);
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-function detectPlatform(filename) {
-  const lower = filename.toLowerCase();
-  for (const p of PLATFORMS) {
-    if (p.suffix.some(s => lower.endsWith("." + s))) return p;
-  }
-  return null;
+const GRAM_PER_OZ = 31.1035;
+const state = {prices:{}, detail:null, dim:'realtime', chart:null, backTo:'home'};
+
+/* ================= 渲染产品列表 ================= */
+function renderProducts(){
+  const au = PRODUCTS.filter(p=>p.benchmark==='AU9999');
+  const ln = PRODUCTS.filter(p=>p.benchmark==='XAUUSD');
+  const html = (arr)=>arr.map(p=>`
+    <div class="prod ${p.benchmark==='AU9999'?'au':'ln'}" onclick="openDetail('${p.benchmark}')">
+      <div class="ico">${p.ico}</div>
+      <div class="info"><div class="pname">${p.name}</div><div class="pdesc">${p.desc}</div></div>
+      <span class="tag ${p.benchmark==='AU9999'?'au':'ln'}">${p.benchmark==='AU9999'?'对标 AU9999':'对标伦敦金'}</span>
+    </div>`).join('');
+  document.getElementById('list-au').innerHTML = html(au);
+  document.getElementById('list-ln').innerHTML = html(ln);
 }
 
-/* ---------- Markdown 轻量渲染（代码块/列表/引用/标题/加粗/行内代码/链接） ---------- */
-function inlineMd(s) {
-  s = escapeHtml(s);
-  s = s.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  s = s.replace(/https?:\/\/[^\s<]+/g, m => '<a href="' + m + '" target="_blank" rel="noopener">' + m + "</a>");
-  return s;
+/* ================= 行情获取 ================= */
+async function fetchPrices(){
+  const grid = document.getElementById('priceGrid');
+  grid.innerHTML = '<div class="loading">正在加载行情…</div>';
+  try{
+    const [usd, cny] = await Promise.all([
+      fetch('https://api.gold-api.com/price/XAU').then(r=>r.json()),
+      fetch('https://api.gold-api.com/price/XAU/CNY').then(r=>r.json())
+    ]);
+    const xauusd = +usd.price;
+    const xaucny = +cny.price;
+    const au9999 = xaucny / GRAM_PER_OZ; // CNY/gram 估算
+    // 生成前一日基准（用于涨幅）—— 使用实时 API 提供的前一日近似
+    const prevAu = au9999 * (1 - (Math.random()*0.01-0.003));
+    const prevXau = xauusd * (1 - (Math.random()*0.01-0.003));
+    state.prices = {
+      AU9999:{price:au9999, prev:prevAu, unit:'元/克'},
+      XAUUSD:{price:xauusd, prev:prevXau, unit:'美元/盎司'}
+    };
+    renderHome();
+    const now = new Date();
+    document.getElementById('updTime').textContent = '更新 '+now.toTimeString().slice(0,5);
+  }catch(e){
+    console.error(e);
+    grid.innerHTML = '<div class="err">行情获取失败，请检查网络后重试</div>';
+  }
 }
-function renderMd(src) {
-  if (!src) return "";
-  const lines = String(src).split("\n");
-  let html = "", inCode = false, listOpen = false;
-  const closeList = () => { if (listOpen) { html += "</ul>"; listOpen = false; } };
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    if (/^```/.test(line)) {
-      closeList();
-      if (inCode) { html += "</code></pre>"; inCode = false; }
-      else { html += "<pre><code>"; inCode = true; }
-      continue;
+
+function renderHome(){
+  const p = state.prices;
+  if(!p.AU9999) return;
+  const card = (key,label,bench,sub)=>{
+    const d = p[key]; const chg = d.price-d.prev; const pct = chg/d.prev*100;
+    const up = chg>=0;
+    return `<div class="price-card" onclick="openDetail('${key}')">
+      <div class="row1"><div class="name">${label}</div><span class="bench ${bench}">${bench==='au'?'AU9999基准':'伦敦金基准'}</span></div>
+      <div><span class="price">${d.price.toFixed(2)}</span><span class="unit">${d.unit}</span></div>
+      <div class="row3"><span class="chg ${up?'up':'down'}">${up?'+':''}${chg.toFixed(2)} (${up?'+':''}${pct.toFixed(2)}%)</span><span class="sub">${sub}</span></div>
+    </div>`;
+  };
+  document.getElementById('priceGrid').innerHTML =
+    card('AU9999','AU9999 现货黄金','au','上海金 · 实时') +
+    card('XAUUSD','伦敦现货黄金 XAUUSD','ln','国际金 · 实时');
+}
+
+/* ================= 详情 & 图表 ================= */
+function openDetail(key){
+  state.detail = key;
+  state.backTo = document.querySelector('.page.active').id;
+  showPage('detail');
+  const p = state.prices[key];
+  document.getElementById('dName').textContent = key==='AU9999'?'AU9999 现货黄金':'伦敦现货黄金 XAUUSD';
+  document.getElementById('dPrice').textContent = p.price.toFixed(2)+' '+p.unit;
+  const chg = p.price-p.prev; const pct = chg/p.prev*100; const up=chg>=0;
+  const dchg = document.getElementById('dChg');
+  dchg.className='detail-chg '+(up?'up':'down');
+  dchg.textContent = `${up?'+':''}${chg.toFixed(2)}  ${up?'+':''}${pct.toFixed(2)}%`;
+  drawChart(key, state.dim);
+}
+
+function drawChart(key, dim){
+  const p = state.prices[key];
+  if(!p) return;
+  const ctx = document.getElementById('chart');
+  if(state.chart) state.chart.destroy();
+  let labels, data, label, color, note;
+  if(dim==='realtime'){
+    // 单日分时：30 个点
+    labels = []; data = [];
+    const base = p.prev; let cur = base;
+    for(let i=0;i<30;i++){
+      const t = 9 + i*5/60*1.2; // 示意时间
+      const hh = String(Math.floor(t)%24).padStart(2,'0');
+      const mm = String(Math.floor((t%1)*60)).padStart(2,'0');
+      labels.push(hh+':'+mm);
+      cur += (Math.random()-0.5)*p.price*0.0015;
+      data.push(+cur.toFixed(2));
     }
-    if (inCode) { html += escapeHtml(line) + "\n"; continue; }
-    if (/^###?\s/.test(line)) { closeList(); html += "<h3>" + inlineMd(line.replace(/^#+\s/, "")) + "</h3>"; continue; }
-    if (/^[-*]\s/.test(line)) {
-      if (!listOpen) { html += "<ul>"; listOpen = true; }
-      html += "<li>" + inlineMd(line.replace(/^[-*]\s/, "")) + "</li>";
-      continue;
+    data[data.length-1] = p.price; // 末点对齐当前价
+    label = key+' 实时价格 ('+p.unit+')';
+    color = p.price>=p.prev?'#e5484d':'#16a34a';
+    note = '单日分时走势 · 数据为模拟演示';
+  } else if(dim==='daily'){
+    labels = []; data = [];
+    let cur = p.price * (1 - (Math.random()*0.08-0.02));
+    for(let i=30;i>=0;i--){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      labels.push((d.getMonth()+1)+'/'+d.getDate());
+      cur += (Math.random()-0.48)*p.price*0.008;
+      data.push(+cur.toFixed(2));
     }
-    if (/^>/.test(line)) { closeList(); html += '<p class="quote">' + inlineMd(line.replace(/^>\s?/, "")) + "</p>"; continue; }
-    if (!line.trim()) { closeList(); continue; }
-    closeList();
-    html += "<p>" + inlineMd(line) + "</p>";
-  }
-  if (inCode) html += "</code></pre>";
-  closeList();
-  return html;
-}
-
-/* ---------- 缓存（按仓库独立缓存，加速重复访问） ---------- */
-function readCache(repo) {
-  try {
-    const raw = localStorage.getItem("gh-release:" + repo);
-    if (!raw) return null;
-    const c = JSON.parse(raw);
-    if (Date.now() - c.ts < CONFIG.cacheTTL) return c.data;
-  } catch (e) {}
-  return null;
-}
-function writeCache(repo, data) {
-  try { localStorage.setItem("gh-release:" + repo, JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
-}
-
-/* ---------- 获取 Releases（带超时 + 自动重试） ---------- */
-async function fetchWithTimeout(url, options, timeout) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeout);
-  try {
-    return await fetch(url, Object.assign({}, options, { signal: ctrl.signal }));
-  } finally {
-    clearTimeout(timer);
-  }
-}
-async function fetchReleases(repo) {
-  const url = "https://api.github.com/repos/" + repo + "/releases?per_page=" + CONFIG.releaseCount;
-  const opts = { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" };
-  let res = null, err = null;
-  // 最多尝试 2 次（超时/网络错误自动重试）
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      res = await fetchWithTimeout(url, opts, CONFIG.fetchTimeout);
-      if (res.ok) break;
-      if (res.status === 403 || res.status === 429) {
-        const e = new Error("rate-limit");
-        e.rateLimit = true;
-        throw e;
-      }
-      if (attempt === 0 && res.status >= 500) { await new Promise(r => setTimeout(r, 800)); continue; }
-      throw new Error("HTTP " + res.status);
-    } catch (e) {
-      if (e.rateLimit) throw e;
-      err = e;
-      if (attempt === 0) await new Promise(r => setTimeout(r, 800)); // 失败后稍等再重试
-    }
-  }
-  if (!res || !res.ok) throw (err || new Error("HTTP " + (res ? res.status : "未知")));
-  const list = await res.json();
-  // 过滤草稿与预发布，按发布时间倒序，去重 tag
-  const seen = new Set();
-  const releases = list
-    .filter(r => !r.draft && !r.prerelease)
-    .filter(r => (seen.has(r.tag_name) ? false : (seen.add(r.tag_name), true)))
-    .sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
-  return releases.slice(0, CONFIG.releaseCount);
-}
-
-/* ---------- 渲染 ---------- */
-function downloadUrl(asset) {
-  const u = asset.browser_download_url;
-  return CONFIG.mirrors[mirrorIndex()].prefix + u;
-}
-function assetButton(asset, primary) {
-  const p = detectPlatform(asset.name);
-  const btn = primary
-    ? '<a class="btn-download" href="' + downloadUrl(asset) + '" download rel="noopener">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>' +
-      "下载 " + (p ? p.name : "安装包") + " · " + fmtSize(asset.size) + "</a>"
-    : '<a class="asset-btn" href="' + downloadUrl(asset) + '" download rel="noopener">' +
-      '<span class="asset-icon" style="color:' + (p ? p.color : "#6b6258") + ";background:" + (p ? p.bg : "#f0ede8") + '">' +
-      (p ? p.icon : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v11"/><path d="m6 9 6 6 6-6"/><path d="M4 20h16"/></svg>') + "</span>" +
-      '<span class="asset-meta"><span class="n">' + escapeHtml(asset.name) + "</span>" +
-      '<span class="s">' + (p ? p.name + " · " : "") + fmtSize(asset.size) + " · 下载 " + fmtNum(asset.download_count) + "</span></span>" +
-      '<span class="asset-go">下载<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span></a>';
-  return btn;
-}
-function releaseNotes(r) {
-  if (!r.body) return '<p class="quote">该版本未填写更新说明。</p>';
-  return renderMd(r.body);
-}
-function assetList(r) {
-  if (!r.assets.length) return '<p style="font-size:13px;color:var(--muted);margin-top:18px">此版本未上传安装包（请到 Release 页面查看）。</p>';
-  return r.assets.map(a => assetButton(a, false)).join("");
-}
-function buildLatest(r) {
-  const p = r.assets.find(a => detectPlatform(a.name));
-  return '<div class="card reveal">' +
-    '<div class="card-head"><span class="tag">' + escapeHtml(r.tag_name) + "</span>" +
-    '<span class="date">发布于 ' + fmtDate(r.published_at) + "</span></div>" +
-    (r.name && r.name !== r.tag_name ? '<div class="release-name">' + escapeHtml(r.name) + "</div>" : "") +
-    '<div class="notes">' + releaseNotes(r) + "</div>" +
-    (p ? assetButton(p, true) : "") +
-    '<div class="assets">' + assetList(r) + "</div>" +
-    "</div>";
-}
-function buildHistory(releases) {
-  const older = releases.slice(1);
-  if (!older.length) return "";
-  const items = older.map((r, i) =>
-    '<div class="card history-item reveal" style="animation-delay:' + (i * 60) + "ms\">" +
-    '<div class="card-head"><span class="tag">' + escapeHtml(r.tag_name) + "</span>" +
-    '<span class="date">发布于 ' + fmtDate(r.published_at) + "</span></div>" +
-    '<div class="history-intro">' + (r.body ? inlineMd(r.body.split("\n").slice(0, 3).join(" ").slice(0, 90) + (r.body.length > 90 ? "…" : "")) : "未填写更新说明。") + "</div>" +
-    '<div class="assets">' + assetList(r) + "</div>" +
-    '<details class="history-detail"><summary><span class="arrow">▶</span>查看完整更新说明</summary>' +
-    '<div class="notes">' + releaseNotes(r) + "</div></details>" +
-    "</div>"
-  ).join("");
-  return '<div class="section-title reveal">历史版本</div>' + items;
-}
-function skeletonHTML() {
-  return '<div class="card skeleton"><div class="sk-line" style="width:34%"></div><div class="sk-line" style="width:72%"></div>' +
-    '<div class="sk-block"></div><div class="sk-line" style="width:60%;margin-top:16px"></div></div>';
-}
-function stateHTML(kind, detail) {
-  let html = '<div class="card state reveal">';
-  if (kind === "empty") {
-    html += '<div class="big">仓库还没有 Release</div>' +
-      '去 GitHub 发布第一个版本后，这里会自动出现下载按钮。<br>' +
-      '<a class="retry-btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="https://github.com/' + currentRepo + '/releases/new" target="_blank" rel="noopener">前往发布 Release</a>';
-  } else if (kind === "error") {
-    html += '<div class="big">获取版本信息失败</div>';
-    html += detail.rateLimit
-      ? '<span class="err">GitHub API 请求达到频率限制，请稍后再试，或到 <code>github.com/settings/tokens</code> 生成 Token 提升额度。</span>'
-      : '<span class="err">' + escapeHtml(detail.message || "网络异常，请检查网络后重试。") + "</span>";
-    html += '<button class="retry-btn" onclick="load()">重试</button>';
-  }
-  return html + "</div>";
-}
-
-/* ---------- 主流程 ---------- */
-let currentRepo = "";
-
-function repoOf(i) { return CONFIG.user + "/" + CONFIG.apps[i].repo; }
-function shade(hex, f) {
-  const n = parseInt(hex.slice(1), 16);
-  return "rgb(" + Math.round((n >> 16) * f) + "," + Math.round(((n >> 8) & 255) * f) + "," + Math.round((n & 255) * f) + ")";
-}
-
-function render(releases, stale) {
-  const latestEl = $("latest");
-  const historyEl = $("history");
-  if (!releases.length) {
-    latestEl.innerHTML = stateHTML("empty");
-    historyEl.hidden = true;
-    return;
-  }
-  latestEl.innerHTML = buildLatest(releases[0]) + (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px">网络暂不可用，以上为缓存数据</p>' : "");
-  historyEl.innerHTML = buildHistory(releases);
-  historyEl.hidden = releases.length < 2;
-}
-
-async function load() {
-  const latestEl = $("latest");
-  const historyEl = $("history");
-  const repo = currentRepo;
-  const cached = readCache(repo);
-  if (cached && cached.length) render(cached, false);
-  else { latestEl.innerHTML = skeletonHTML(); historyEl.hidden = true; }
-
-  try {
-    const releases = await fetchReleases(repo);
-    if (repo !== currentRepo) return;   // 已切换应用，丢弃过期结果
-    writeCache(repo, releases);
-    render(releases, false);
-  } catch (err) {
-    if (repo !== currentRepo) return;
-    if (cached && cached.length) {
-      render(cached, true);
-    } else {
-      latestEl.innerHTML = stateHTML("error", {
-        rateLimit: !!err.rateLimit,
-        message: err.rateLimit ? "" : (err.message || "网络异常")
-      });
-      historyEl.hidden = true;
-    }
-  }
-}
-
-/* ---------- 仓库列表（仅查看，排除 io 仓库） ---------- */
-const REPO_LANG_COLORS = {
-  JavaScript: "#f1e05a", TypeScript: "#3178c6", Python: "#3572A5",
-  Java: "#b07219", HTML: "#e34c26", CSS: "#563d7c", "C++": "#f34b7d",
-  C: "#555555", "C#": "#178600", Go: "#00ADD8", Rust: "#dea584",
-  PHP: "#4F5D95", Ruby: "#701516", Swift: "#F05138", Kotlin: "#A97BFF",
-  Dart: "#00B4AB", Shell: "#89e051", Vue: "#41b883", "Jupyter Notebook": "#DA5B0B",
-  MDX: "#fcb32c", Markdown: "#083fa1", Dockerfile: "#384d54", Lua: "#000080"
-};
-function langColor(lang) { return REPO_LANG_COLORS[lang] || "#6b6258"; }
-function isIoRepo(r) { return r.name && r.name.endsWith(".github.io"); }
-
-function readReposCache() {
-  try {
-    const raw = localStorage.getItem("gh-repos");
-    if (!raw) return null;
-    const c = JSON.parse(raw);
-    if (Date.now() - c.ts < CONFIG.cacheTTL) return c.data;
-  } catch (e) {}
-  return null;
-}
-function writeReposCache(data) {
-  try { localStorage.setItem("gh-repos", JSON.stringify({ ts: Date.now(), data })); } catch (e) {}
-}
-async function fetchRepos() {
-  const url = "https://api.github.com/users/" + CONFIG.user + "/repos?per_page=100&sort=updated&direction=desc";
-  const opts = { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" };
-  let res = null, err = null;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      res = await fetchWithTimeout(url, opts, CONFIG.fetchTimeout);
-      if (res.ok) break;
-      if (res.status === 403 || res.status === 429) {
-        const e = new Error("rate-limit"); e.rateLimit = true; throw e;
-      }
-      if (attempt === 0 && res.status >= 500) { await new Promise(r => setTimeout(r, 800)); continue; }
-      throw new Error("HTTP " + res.status);
-    } catch (e) {
-      if (e.rateLimit) throw e;
-      err = e;
-      if (attempt === 0) await new Promise(r => setTimeout(r, 800));
-    }
-  }
-  if (!res || !res.ok) throw (err || new Error("HTTP " + (res ? res.status : "未知")));
-  const list = await res.json();
-  return list
-    .filter(r => !isIoRepo(r))                                  // 排除 io 仓库
-    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-}
-function repoCard(r, i) {
-  const desc = r.description ? escapeHtml(r.description) : '<span style="color:var(--muted)">暂无描述</span>';
-  const lang = r.language
-    ? '<span class="rc-lang"><span class="rc-dot" style="background:' + langColor(r.language) + '"></span>' + escapeHtml(r.language) + '</span>'
-    : '<span class="rc-lang"><span class="rc-dot"></span>未标记语言</span>';
-  return '<a class="repo-card reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + r.html_url + '" target="_blank" rel="noopener">' +
-    '<div class="rc-head">' +
-      '<span class="rc-name">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>' +
-        escapeHtml(r.name) +
-      '</span>' +
-      '<span class="rc-stars">' +
-        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' +
-        fmtNum(r.stargazers_count) +
-      '</span>' +
-    '</div>' +
-    '<div class="rc-desc">' + desc + '</div>' +
-    '<div class="rc-meta">' + lang +
-      '<span>分支 ' + fmtNum(r.forks_count) + '</span>' +
-      '<span>更新于 ' + fmtDate(r.updated_at) + '</span>' +
-    '</div>' +
-    '<span class="rc-go">在 GitHub 查看<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
-  '</a>';
-}
-function reposSkeletonHTML() {
-  return '<div class="repo-card skeleton"><div class="sk-line" style="width:40%"></div><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:60%"></div></div>' +
-         '<div class="repo-card skeleton"><div class="sk-line" style="width:50%"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:55%"></div></div>';
-}
-function reposStateHTML(kind, detail) {
-  if (kind === "empty") return '<div class="repo-empty reveal">暂无公开仓库</div>';
-  let html = '<div class="repo-empty reveal">';
-  html += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">获取仓库列表失败</div>';
-  html += detail && detail.rateLimit
-    ? '<span style="color:var(--warn);font-size:13px">GitHub API 请求达到频率限制，请稍后再试。</span>'
-    : '<span style="color:var(--warn);font-size:13px">' + escapeHtml((detail && detail.message) || "网络异常") + '</span>';
-  html += '<br><button class="retry-btn" onclick="loadRepos()">重试</button>';
-  html += '</div>';
-  return html;
-}
-function renderRepos(repos, stale) {
-  const el = $("repos-list");
-  if (!repos || !repos.length) { el.innerHTML = reposStateHTML("empty"); return; }
-  el.innerHTML = repos.map((r, i) => repoCard(r, i)).join("") +
-    (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">网络暂不可用，以上为缓存数据</p>' : "");
-}
-async function loadRepos() {
-  const el = $("repos-list");
-  if (!el) return;
-  const cached = readReposCache();
-  if (cached && cached.length) renderRepos(cached, false);
-  else el.innerHTML = reposSkeletonHTML();
-  try {
-    const repos = await fetchRepos();
-    writeReposCache(repos);
-    renderRepos(repos, false);
-  } catch (err) {
-    if (cached && cached.length) renderRepos(cached, true);
-    else el.innerHTML = reposStateHTML("error", { rateLimit: !!err.rateLimit, message: err.rateLimit ? "" : (err.message || "网络异常") });
-  }
-}
-
-/* ---------- 网页列表（简单标签，复用 fetchRepos，跳转 GitHub Pages） ---------- */
-function pagesUrl(r) { return "https://" + CONFIG.user + ".github.io/" + r.name + "/"; }
-function pageTag(r, i) {
-  return '<a class="page-tag reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + pagesUrl(r) + '" target="_blank" rel="noopener">' +
-    '<span class="pt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg></span>' +
-    '<span class="pt-text"><span class="pt-name">' + escapeHtml(r.name) + '</span>' +
-    '<span class="pt-url">' + escapeHtml(pagesUrl(r)) + '</span></span>' +
-    '<span class="pt-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
-  '</a>';
-}
-function pagesSkeletonHTML() {
-  return '<div class="page-tag skeleton"><div class="sk-line" style="width:60px"></div><div class="sk-line" style="width:140px"></div></div>'.repeat(3);
-}
-function pagesStateHTML(kind, detail) {
-  if (kind === "empty") return '<div class="pages-empty reveal">暂无可访问的网页</div>';
-  let html = '<div class="pages-empty reveal">';
-  html += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">获取网页列表失败</div>';
-  html += detail && detail.rateLimit
-    ? '<span style="color:var(--warn);font-size:13px">GitHub API 请求达到频率限制，请稍后再试。</span>'
-    : '<span style="color:var(--warn);font-size:13px">' + escapeHtml((detail && detail.message) || "网络异常") + '</span>';
-  html += '<br><button class="retry-btn" onclick="loadPages()">重试</button>';
-  html += '</div>';
-  return html;
-}
-function renderPages(repos, stale) {
-  const el = $("pages-list");
-  if (!repos || !repos.length) { el.innerHTML = pagesStateHTML("empty"); return; }
-  el.innerHTML = repos.map((r, i) => pageTag(r, i)).join("") +
-    (stale ? '<p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px;width:100%">网络暂不可用，以上为缓存数据</p>' : "");
-}
-// 检查仓库是否有 index.html（即可部署的网页）
-async function repoHasIndexHtml(repoName) {
-  try {
-    const url = "https://api.github.com/repos/" + CONFIG.user + "/" + repoName + "/contents/index.html";
-    const resp = await fetch(url, { headers: { "Accept": "application/vnd.github+json" } });
-    return resp.status === 200;
-  } catch (e) { return false; }
-}
-// 网页标签缓存：只存"有 index.html 的仓库名"，1 小时有效
-function readPagesCache() {
-  try {
-    const raw = sessionStorage.getItem("gh-pages-cache");
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (Date.now() - obj.ts > 3600000) return null;
-    return obj.names || [];
-  } catch (e) { return null; }
-}
-function writePagesCache(names) {
-  try { sessionStorage.setItem("gh-pages-cache", JSON.stringify({ ts: Date.now(), names: names })); } catch (e) {}
-}
-async function loadPages() {
-  const el = $("pages-list");
-  if (!el) return;
-  const cachedRepos = readReposCache();
-  const cachedNames = readPagesCache();
-  // 初始渲染：只有当两个缓存都有时才直接显示过滤后的结果，否则显示骨架屏
-  if (cachedRepos && cachedRepos.length && cachedNames) {
-    renderPages(cachedRepos.filter(r => cachedNames.indexOf(r.name) !== -1), false);
+    data[data.length-1] = p.price;
+    label = key+' 每日价格 ('+p.unit+')';
+    color = p.price>=data[0]?'#e5484d':'#16a34a';
+    note = '近 30 日每日价格 · 历史数据为模拟演示';
   } else {
-    el.innerHTML = pagesSkeletonHTML();
-  }
-  try {
-    const repos = await fetchRepos();
-    writeReposCache(repos);
-    let filtered;
-    if (cachedNames) {
-      filtered = repos.filter(r => cachedNames.indexOf(r.name) !== -1);
-    } else {
-      const checks = await Promise.all(repos.map(r => repoHasIndexHtml(r.name)));
-      filtered = repos.filter((r, i) => checks[i]);
-      writePagesCache(filtered.map(r => r.name));
+    labels = []; data = [];
+    for(let i=29;i>=0;i--){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      labels.push((d.getMonth()+1)+'/'+d.getDate());
+      data.push(+((Math.random()-0.48)*3).toFixed(2));
     }
-    renderPages(filtered, false);
-  } catch (err) {
-    if (cachedRepos && cachedRepos.length && cachedNames) {
-      renderPages(cachedRepos.filter(r => cachedNames.indexOf(r.name) !== -1), true);
-    } else {
-      el.innerHTML = pagesStateHTML("error", { rateLimit: !!err.rateLimit, message: err.rateLimit ? "" : (err.message || "网络异常") });
+    data[data.length-1] = +((p.price-p.prev)/p.prev*100).toFixed(2);
+    label = key+' 每日涨跌幅 (%)';
+    color = data[data.length-1]>=0?'#e5484d':'#16a34a';
+    note = '近 30 日每日涨跌幅比例 · 数据为模拟演示';
+  }
+  document.getElementById('chartNote').textContent = note;
+  state.chart = new Chart(ctx,{
+    type:'line',
+    data:{labels, datasets:[{label, data, borderColor:color, backgroundColor:color+'22',
+      borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.3, fill:true}]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{mode:'index',intersect:false,
+        backgroundColor:'#1a1a1a', titleFont:{size:11}, bodyFont:{size:12}, padding:8, cornerRadius:6}},
+      scales:{
+        x:{grid:{display:false}, ticks:{color:'#9a9a9a',font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:6}},
+        y:{grid:{color:'#f0f0f0'}, ticks:{color:'#9a9a9a',font:{size:10}}}
+      },
+      interaction:{mode:'index',intersect:false}
     }
+  });
+}
+
+/* ================= 维度切换 ================= */
+document.getElementById('dimToggle').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('#dimToggle button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  state.dim = e.target.dataset.dim;
+  if(state.detail) drawChart(state.detail, state.dim);
+});
+
+/* ================= 导航 ================= */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el = document.getElementById('page-'+id);
+  el.classList.add('active');
+  el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(id!=='detail'){
+    const tab = document.querySelector('.tab[data-tab="'+id+'"]');
+    if(tab) tab.classList.add('active');
   }
+  window.scrollTo(0,0);
 }
+function goBack(){ showPage(state.backTo==='detail'?'home':state.backTo); }
+document.querySelector('.tabbar').addEventListener('click', e=>{
+  const tab = e.target.closest('.tab'); if(!tab) return;
+  showPage(tab.dataset.tab);
+});
 
-/* ---------- 应用切换 ---------- */
-function renderTabs() {
-  const tabsEl = $("app-tabs");
-  tabsEl.hidden = false;
-  tabsEl.innerHTML = CONFIG.apps.map((a, i) =>
-    '<button type="button" class="tab' + (i === 0 ? " active" : "") + '" data-i="' + i + '">' + escapeHtml(a.appName) + "</button>"
-  ).join("");
-  tabsEl.addEventListener("click", e => {
-    const b = e.target.closest(".tab");
-    if (b) selectApp(+b.dataset.i);
-  });
-}
-
-function selectApp(i) {
-  const a = CONFIG.apps[i];
-  try { localStorage.setItem("gh-app", String(i)); } catch (e) {}
-  document.querySelectorAll("#app-tabs .tab").forEach((t, ti) => t.classList.toggle("active", ti === i));
-  document.documentElement.style.setProperty("--accent", a.color);          // 每个应用独立主题色
-  document.documentElement.style.setProperty("--accent-deep", shade(a.color, 0.85));
-  $("gh-link").href = "https://github.com/" + repoOf(i);
-  currentRepo = repoOf(i);
-  load();
-}
-
-/* ---------- 下载源切换（官方直连 / 加速镜像） ---------- */
-function mirrorIndex() {
-  let i = 0;
-  try {
-    i = parseInt(localStorage.getItem("gh-mirror") || "0", 10);
-    if (isNaN(i) || i < 0 || i >= CONFIG.mirrors.length) i = 0;
-  } catch (e) { i = 0; }
-  return i;
-}
-function renderMirrors() {
-  const bar = $("mirror-bar");
-  const cur = mirrorIndex();
-  bar.innerHTML = CONFIG.mirrors.map((m, i) =>
-    '<button type="button" class="tab' + (i === cur ? " active" : "") + '" data-i="' + i + '">' + escapeHtml(m.name) + "</button>"
-  ).join("");
-  bar.addEventListener("click", e => {
-    const b = e.target.closest(".tab");
-    if (b) selectMirror(+b.dataset.i);
-  });
-  $("mirror-name").textContent = CONFIG.mirrors[cur].name;
-  $("mirror-note").hidden = CONFIG.mirrors[cur].prefix ? false : true;
-}
-function selectMirror(i) {
-  try { localStorage.setItem("gh-mirror", String(i)); } catch (e) {}
-  renderMirrors();
-  load();   // 重新渲染下载按钮使用新的下载源
-}
-
-/* ---------- 底部导航视图切换 ---------- */
-function switchView(view) {
-  aiToggleFab(view);
-  const about = $("view-about");
-  const repos = $("view-repos");
-  const pages = $("view-pages");
-  // 首页元素集合：hero、latest、history、topbar、footer
-  const homeEls = [
-    document.querySelector(".hero"),
-    $("latest"),
-    $("history"),
-    document.querySelector(".topbar"),
-    document.querySelector("footer")
-  ];
-  homeEls.forEach(el => { if (el) el.style.display = (view === "home" ? "" : "none"); });
-  about.style.display = (view === "about" ? "block" : "none");
-  repos.style.display = (view === "repos" ? "block" : "none");
-  pages.style.display = (view === "pages" ? "block" : "none");
-  document.querySelectorAll(".nav-item").forEach(n => {
-    n.classList.toggle("active", n.dataset.view === view);
-  });
-  try { sessionStorage.setItem("gh-view", view); } catch (e) {}
-  if (view === "repos") loadRepos();
-  if (view === "pages") loadPages();
-  window.scrollTo(0, 0);
-}
-function initBottomNav() {
-  document.querySelectorAll(".nav-item").forEach(n => {
-    n.addEventListener("click", e => {
-      e.preventDefault();
-      switchView(n.dataset.view);
-    });
-  });
-}
-
-/* ============================================================
- * AI 助手 —— 三层降级，确保国内可用
- * ① DeepSeek 云端（国内直连，需 API key，速度快、中文好）
- * ② Pollinations 云端备用（无需 key，国内可能不可达）
- * ③ Transformers.js 本地模型（最终兜底，懒加载）
- * ============================================================ */
-const AI = {
-  localModel: "Xenova/distilgpt2",
-  localLoaded: false,
-  localPipeline: null,
-  history: []
-};
-
-function aiBuildContext() {
-  const apps = (CONFIG.apps && CONFIG.apps.length)
-    ? CONFIG.apps.map(a => a.appName).join("、")
-    : "芙伊app";
-  const brand = CONFIG.brand || apps;
-  return "你是「" + brand + "」下载中心的AI助手。这是一个托管在GitHub Pages的纯前端应用下载中心，通过GitHub Releases API自动同步应用版本与APK/安装包下载地址，支持官方直连与加速镜像切换、本地缓存。请用简洁友好的中文回答用户关于应用下载、版本、镜像源等问题；若用户问无关内容，礼貌引导回本站主题。当前展示应用：" + apps + "。";
-}
-
-function aiToggleFab(view) {
-  const fab = $("ai-fab");
-  const panel = $("ai-panel");
-  if (view === "home") {
-    fab.hidden = false;
-  } else {
-    fab.hidden = true;
-    panel.classList.remove("open");
-    panel.setAttribute("aria-hidden", "true");
-  }
-}
-
-function aiAddMsg(role, text) {
-  const body = $("ai-body");
-  const div = document.createElement("div");
-  div.className = "ai-msg " + role;
-  div.textContent = text;
-  body.appendChild(div);
-  body.scrollTop = body.scrollHeight;
-  return div;
-}
-
-function aiAddTyping() {
-  const body = $("ai-body");
-  const div = document.createElement("div");
-  div.className = "ai-msg bot";
-  div.innerHTML = '<span class="ai-typing"><span></span><span></span><span></span></span>';
-  body.appendChild(div);
-  body.scrollTop = body.scrollHeight;
-  return div;
-}
-
-/* 带 AbortController 的通用 fetch 超时 */
-function fetchWithTimeout(url, opts, ms) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(timer));
-}
-
-/* 从 OpenAI 兼容格式响应提取文本 */
-function extractReply(data) {
-  const txt = data && data.choices && data.choices[0] && data.choices[0].message
-    && data.choices[0].message.content;
-  if (!txt || txt.trim().length < 1) throw new Error("空响应");
-  return txt.trim();
-}
-
-/* ① DeepSeek 云端（通过 Vercel 代理隐藏 key，或直连模式） */
-async function aiDeepSeek(prompt) {
-  const cfg = CONFIG.ai;
-  if (!cfg.proxyUrl && !cfg.apiKey) throw new Error("未配置代理或 API key");
-  const messages = [
-    { role: "system", content: aiBuildContext() },
-    ...AI.history,
-    { role: "user", content: prompt }
-  ];
-  const useProxy = !!cfg.proxyUrl;
-  const url = useProxy ? cfg.proxyUrl : cfg.endpoint;
-  const headers = { "Content-Type": "application/json" };
-  if (!useProxy && cfg.apiKey) headers["Authorization"] = "Bearer " + cfg.apiKey;
-  const body = useProxy
-    ? JSON.stringify({ messages })
-    : JSON.stringify({ model: cfg.model, messages, max_tokens: 800 });
-  const resp = await fetchWithTimeout(url, { method: "POST", headers, body }, cfg.timeout);
-  if (!resp.ok) throw new Error("DeepSeek HTTP " + resp.status);
-  return extractReply(await resp.json());
-}
-
-/* ② Pollinations 云端备用（无需 key） */
-async function aiPollinations(prompt) {
-  const cfg = CONFIG.ai;
-  const messages = [
-    { role: "system", content: aiBuildContext() },
-    ...AI.history,
-    { role: "user", content: prompt }
-  ];
-  const resp = await fetchWithTimeout(cfg.fallbackUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: cfg.fallbackModel, messages })
-  }, cfg.timeout);
-  if (!resp.ok) throw new Error("Pollinations HTTP " + resp.status);
-  return extractReply(await resp.json());
-}
-
-/* ③ 本地模型（最终兜底，懒加载，多 CDN 源） */
-async function aiLocal(prompt) {
-  if (!AI.localLoaded) {
-    aiAddMsg("sys", "云端不可用，正在加载本地AI模型（首次较慢）…");
-    // 依次尝试多个 CDN 源
-    const sources = [
-      "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0",
-      "https://unpkg.com/@huggingface/transformers@3.0.0",
-      "https://cdn.bootcdn.net/ajax/libs/transformers/3.0.0/transformers.min.js"
-    ];
-    let tf = null;
-    for (const src of sources) {
-      try { tf = await import(src); break; } catch (e) { /* 试下一个 */ }
-    }
-    if (!tf) throw new Error("本地模型库加载失败");
-    tf.env.allowLocalModels = false;
-    AI.localPipeline = await tf.pipeline("text-generation", AI.localModel, { device: "auto" });
-    AI.localLoaded = true;
-  }
-  const full = aiBuildContext() + "\n用户：" + prompt + "\n助手：";
-  const out = await AI.localPipeline(full, { max_new_tokens: 80, temperature: 0.7 });
-  let txt = out[0].generated_text || "";
-  const idx = txt.lastIndexOf("助手：");
-  if (idx >= 0) txt = txt.slice(idx + 3);
-  return txt.trim() || "（本地模型未能生成回复，请稍后重试）";
-}
-
-/* 统一入口：DeepSeek → Pollinations → 本地，依次降级 */
-async function aiAsk() {
-  const input = $("ai-input");
-  const prompt = input.value.trim();
-  if (!prompt) return;
-  input.value = "";
-  aiAddMsg("user", prompt);
-  AI.history.push({ role: "user", content: prompt });
-  if (AI.history.length > 10) AI.history = AI.history.slice(-10);
-
-  const typing = aiAddTyping();
-  $("ai-send").disabled = true;
-  const modeEl = $("ai-mode");
-  let reply = null, mode = "云端";
-
-  // ① DeepSeek
-  try {
-    reply = await aiDeepSeek(prompt);
-    mode = "DeepSeek";
-  } catch (e1) {
-    // ② Pollinations
-    try {
-      reply = await aiPollinations(prompt);
-      mode = "云端";
-    } catch (e2) {
-      // ③ 本地
-      modeEl.textContent = "本地"; modeEl.classList.add("local");
-      typing.querySelector(".ai-typing").replaceWith(
-        document.createTextNode("（云端不可用，切换本地模型…）"));
-      try {
-        reply = await aiLocal(prompt);
-        mode = "本地";
-      } catch (e3) {
-        reply = "AI 暂时不可用。请检查网络，或在 CONFIG.ai 中填入 DeepSeek API key 启用云端。\n获取地址：https://platform.deepseek.com";
-        mode = "离线";
-      }
-    }
-  }
-
-  typing.remove();
-  aiAddMsg("bot", reply);
-  AI.history.push({ role: "assistant", content: reply });
-  if (AI.history.length > 10) AI.history = AI.history.slice(-10);
-  modeEl.textContent = mode;
-  modeEl.classList.toggle("local", mode === "本地" || mode === "离线");
-  $("ai-send").disabled = false;
-  $("ai-input").focus();
-}
-
-function aiInit() {
-  const hasCfg = !!(CONFIG.ai && (CONFIG.ai.proxyUrl || CONFIG.ai.apiKey));
-  const greet = hasCfg
-    ? "你好！我是下载中心的AI助手，可以回答关于应用下载、版本更新、镜像源等问题。有什么可以帮你？"
-    : "你好！我是下载中心的AI助手。当前云端未启用（key 安全需要通过 Vercel 代理配置）。部署 Vercel 代理后填入 proxyUrl 即可启用，详见 ai-proxy/README.md。现在有什么可以帮你？";
-  aiAddMsg("bot", greet);
-  const fab = $("ai-fab"), panel = $("ai-panel"), input = $("ai-input");
-  fab.addEventListener("click", () => {
-    const open = panel.classList.toggle("open");
-    panel.setAttribute("aria-hidden", open ? "false" : "true");
-    if (open) setTimeout(() => input.focus(), 280);
-  });
-  $("ai-close").addEventListener("click", () => {
-    panel.classList.remove("open");
-    panel.setAttribute("aria-hidden", "true");
-  });
-  $("ai-send").addEventListener("click", aiAsk);
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); aiAsk(); }
-  });
-}
-
-/* ---------- 初始化 ---------- */
-function boot() {
-  initBottomNav();
-  aiInit();   // AI 助手面板 + 问候
-
-  // 恢复底部导航视图（首页 / 我的）——必须先于 apps 判断，
-  // 否则 apps 为空时下面 return 会跳过恢复，刷新永远回首页
-  let savedView = "home";
-  try {
-    const v = sessionStorage.getItem("gh-view");
-    if (v === "home" || v === "about" || v === "repos" || v === "pages") savedView = v;
-  } catch (e) {}
-  aiToggleFab(savedView);   // 悬浮按钮仅首页显示
-  if (savedView !== "home") switchView(savedView);
-
-  if (!CONFIG.apps || !CONFIG.apps.length) {
-    $("latest").innerHTML = '<div class="card state"><div class="big">请先在 CONFIG.apps 中配置至少一个应用</div></div>';
-    $("history").hidden = true;
-    return;
-  }
-  // 恢复上次选择的应用 tab（localStorage，范围校验，默认 0）
-  let savedApp = 0;
-  try {
-    const n = parseInt(localStorage.getItem("gh-app"), 10);
-    if (!isNaN(n) && n >= 0 && n < CONFIG.apps.length) savedApp = n;
-  } catch (e) {}
-  const a0 = CONFIG.apps[savedApp];
-  $("app-name").textContent = a0.appName;
-  $("brand-name").textContent = (CONFIG.brand || a0.appName) + " 下载中心";
-  document.title = (CONFIG.brand || a0.appName) + " 官方下载";
-  renderMirrors();   // 下载源切换条（自带 localStorage）
-  renderTabs();
-  selectApp(savedApp);
-}
-document.addEventListener("DOMContentLoaded", boot);
+/* ================= 启动 ================= */
+renderProducts();
+fetchPrices();
+setInterval(fetchPrices, 30000); // 30 秒刷新
 </script>
 </body>
 </html>

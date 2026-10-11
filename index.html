@@ -385,6 +385,58 @@
     .ai-fab{bottom:24px}
   }
 
+  /* 设置页 */
+  #view-settings .about-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;box-shadow:var(--shadow);
+  }
+  #view-settings h2{font-size:18px;margin-bottom:14px}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
+  .stat-card{
+    background:#fdfcfb;border:1px solid var(--line);border-radius:14px;
+    padding:18px 8px;text-align:center;
+    transition:transform .15s,border-color .15s;
+  }
+  .stat-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .stat-num{font-size:26px;font-weight:800;color:var(--accent);font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;line-height:1.1}
+  .stat-label{margin-top:6px;font-size:12px;color:var(--muted)}
+
+  .stat-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px;border:1px solid var(--line);border-radius:10px;
+    background:#fdfcfb;margin-bottom:8px;font-size:14px;
+  }
+  .stat-row span{color:var(--muted)}
+  .stat-row b{color:var(--ink);font-weight:700;font-family:ui-monospace,Consolas,monospace}
+
+  .stat-logs{display:flex;flex-direction:column;gap:8px}
+  .stat-log{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fdfcfb;font-size:13px;
+  }
+  .stat-log-time{color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:nowrap}
+  .stat-log-mode{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+  .stat-log-mode.ok{background:rgba(31,157,85,.14);color:var(--ok)}
+  .stat-log-mode.warn{background:rgba(194,86,43,.14);color:var(--warn)}
+  .stat-log-mode.err{background:rgba(255,92,31,.14);color:var(--accent)}
+  .stat-log-tokens{color:var(--accent);font-weight:700;font-family:ui-monospace,Consolas,monospace;white-space:nowrap}
+  .stat-log-preview{flex:1;min-width:80px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .stat-empty{text-align:center;color:var(--muted);padding:24px;font-size:14px}
+
+  .stat-reset{
+    margin-top:22px;width:100%;padding:11px;border:1px solid var(--line);
+    border-radius:12px;background:var(--card);color:var(--muted);
+    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+    transition:color .2s,border-color .2s,background .2s;
+  }
+  .stat-reset:hover{color:var(--accent);border-color:var(--accent);background:rgba(255,92,31,.05)}
+
+  @media(max-width:380px){
+    .stat-grid{grid-template-columns:1fr}
+  }
+
 </style>
 </head>
 <body>
@@ -461,6 +513,12 @@
     <div id="repos-list"></div>
   </section>
 
+  <!-- 设置页 -->
+  <section id="view-settings" class="wrap" hidden>
+    <div class="section-title reveal" style="margin-top:8px">设置</div>
+    <div id="settings-list"></div>
+  </section>
+
   <!-- 网页页（简单标签，点击跳转 GitHub Pages） -->
   <section id="view-pages" class="wrap">
     <div class="section-title reveal" style="margin-top:8px">我的网页</div>
@@ -503,6 +561,10 @@
   <a class="nav-item" data-view="repos">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
     <span>仓库</span>
+  </a>
+  <a class="nav-item" data-view="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>设置</span>
   </a>
   <a class="nav-item" data-view="about">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
@@ -1077,6 +1139,7 @@ function switchView(view) {
   const about = $("view-about");
   const repos = $("view-repos");
   const pages = $("view-pages");
+  const settings = $("view-settings");
   // 首页元素集合：hero、latest、history、topbar、footer
   const homeEls = [
     document.querySelector(".hero"),
@@ -1089,12 +1152,14 @@ function switchView(view) {
   about.style.display = (view === "about" ? "block" : "none");
   repos.style.display = (view === "repos" ? "block" : "none");
   pages.style.display = (view === "pages" ? "block" : "none");
+  settings.style.display = (view === "settings" ? "block" : "none");
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
   try { sessionStorage.setItem("gh-view", view); } catch (e) {}
   if (view === "repos") loadRepos();
   if (view === "pages") loadPages();
+  if (view === "settings") loadSettings();
   window.scrollTo(0, 0);
 }
 function initBottomNav() {
@@ -1116,8 +1181,111 @@ const AI = {
   localModel: "Xenova/distilgpt2",
   localLoaded: false,
   localPipeline: null,
-  history: []
+  history: [],
+  stats: null  // 使用量统计（懒加载）
 };
+
+/* AI 使用量统计 —— localStorage 持久化 */
+function aiLoadStats() {
+  if (AI.stats) return AI.stats;
+  try {
+    AI.stats = JSON.parse(localStorage.getItem("ai-stats") || "null") || {
+      totalCalls: 0,       // 总调用次数
+      totalTokens: 0,      // 估算总 token 数
+      todayCalls: 0,       // 今日调用
+      todayDate: "",       // 今日日期标记
+      modeBreakdown: {},   // 按模式统计 { DeepSeek: n, 云端: n, 本地: n }
+      history: []          // 最近 20 条调用记录
+    };
+  } catch (e) {
+    AI.stats = { totalCalls: 0, totalTokens: 0, todayCalls: 0, todayDate: "", modeBreakdown: {}, history: [] };
+  }
+  // 检测日期切换，重置今日计数
+  const today = new Date().toISOString().slice(0, 10);
+  if (AI.stats.todayDate !== today) {
+    AI.stats.todayDate = today;
+    AI.stats.todayCalls = 0;
+    aiSaveStats();
+  }
+  return AI.stats;
+}
+
+function aiSaveStats() {
+  try { localStorage.setItem("ai-stats", JSON.stringify(AI.stats)); } catch (e) {}
+}
+
+/* 记录一次 AI 调用 */
+function aiRecordCall(mode, inputText, replyText) {
+  const s = aiLoadStats();
+  // 粗略估算 token：中文约 1.5 字/token，英文约 4 字符/token
+  const inTokens = Math.ceil((inputText || "").length / 1.5);
+  const outTokens = Math.ceil((replyText || "").length / 1.5);
+  const tokens = inTokens + outTokens;
+
+  s.totalCalls++;
+  s.totalTokens += tokens;
+  s.todayCalls++;
+  s.modeBreakdown[mode] = (s.modeBreakdown[mode] || 0) + 1;
+
+  s.history.unshift({
+    time: new Date().toLocaleString("zh-CN", { hour12: false }),
+    mode,
+    tokens,
+    preview: (inputText || "").slice(0, 30)
+  });
+  if (s.history.length > 20) s.history = s.history.slice(0, 20);
+
+  aiSaveStats();
+}
+
+/* 设置页：渲染 AI 使用量统计 */
+function loadSettings() {
+  const s = aiLoadStats();
+  const el = $("settings-list");
+  if (!el) return;
+
+  const modeList = Object.entries(s.modeBreakdown)
+    .map(([k, v]) => '<div class="stat-row"><span>' + escapeHtml(k) + '</span><b>' + v + ' 次</b></div>')
+    .join("") || '<div class="stat-row"><span>暂无记录</span><b>-</b></div>';
+
+  const recentList = s.history.map(h =>
+    '<div class="stat-log">' +
+    '<span class="stat-log-time">' + escapeHtml(h.time) + '</span>' +
+    '<span class="stat-log-mode ' + (h.mode === "DeepSeek" ? "ok" : h.mode === "本地" ? "warn" : "err") + '">' + escapeHtml(h.mode) + '</span>' +
+    '<span class="stat-log-tokens">' + h.tokens + ' tok</span>' +
+    '<span class="stat-log-preview">' + escapeHtml(h.preview) + (h.preview.length >= 30 ? "…" : "") + '</span>' +
+    '</div>'
+  ).join("") || '<div class="stat-empty">暂无调用记录</div>';
+
+  el.innerHTML =
+    '<div class="about-card reveal">' +
+      '<h2>AI 使用量统计</h2>' +
+      '<div class="stat-grid">' +
+        '<div class="stat-card"><div class="stat-num">' + s.totalCalls + '</div><div class="stat-label">总调用次数</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + s.todayCalls + '</div><div class="stat-label">今日调用</div></div>' +
+        '<div class="stat-card"><div class="stat-num">' + s.totalTokens.toLocaleString() + '</div><div class="stat-label">估算总 Token</div></div>' +
+      '</div>' +
+
+      '<h2 style="margin-top:22px">按模式统计</h2>' +
+      '<div>' + modeList + '</div>' +
+
+      '<h2 style="margin-top:22px">最近调用记录</h2>' +
+      '<div class="stat-logs">' + recentList + '</div>' +
+
+      '<button class="stat-reset" id="stat-reset">清除统计记录</button>' +
+    '</div>';
+
+  // 绑定清除按钮
+  const resetBtn = $("stat-reset");
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      if (!confirm("确定清除所有 AI 使用统计记录？")) return;
+      AI.stats = { totalCalls: 0, totalTokens: 0, todayCalls: 0, todayDate: "", modeBreakdown: {}, history: [] };
+      aiSaveStats();
+      loadSettings();
+    };
+  }
+}
 
 function aiBuildContext() {
   const apps = (CONFIG.apps && CONFIG.apps.length)
@@ -1196,7 +1364,8 @@ const AI_VIEW_MAP = {
   "首页": "home", "主页": "home", "home": "home",
   "网页": "pages", "网页页": "pages", "我的网页": "pages", "pages": "pages",
   "仓库": "repos", "仓库页": "repos", "我的仓库": "repos", "repos": "repos",
-  "关于": "about", "关于页": "about", "关于本站": "about", "about": "about"
+  "关于": "about", "关于页": "about", "关于本站": "about", "about": "about",
+  "设置": "settings", "设置页": "settings", "settings": "settings"
 };
 
 /* AI 跳转标记格式：[跳转:网页] -> 渲染为跳转按钮 */
@@ -1391,6 +1560,7 @@ async function aiAsk() {
 
   typing.remove();
   aiAddMsg("bot", reply);
+  aiRecordCall(mode, prompt, reply);
   AI.history.push({ role: "assistant", content: reply });
   if (AI.history.length > 10) AI.history = AI.history.slice(-10);
   modeEl.textContent = mode;

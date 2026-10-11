@@ -1072,6 +1072,7 @@ function selectMirror(i) {
 
 /* ---------- 底部导航视图切换 ---------- */
 function switchView(view) {
+  window.__currentView = view;
   aiToggleFab(view);
   const about = $("view-about");
   const repos = $("view-repos");
@@ -1133,6 +1134,7 @@ function aiBuildContext() {
     "- 网站名称：" + brand,
     "- 托管平台：GitHub Pages（用户：" + user + "），纯前端实现，无后端服务器",
     "- 网址：https://1rc2.github.io/",
+    "- 当前所在页面：" + (window.__currentView || "home"),
     "",
     "【网站功能】",
     "1. 首页（应用下载中心）：通过 GitHub Releases API 自动同步各应用的最新版本与下载地址",
@@ -1185,15 +1187,8 @@ function aiBuildContext() {
 }
 
 function aiToggleFab(view) {
-  const fab = $("ai-fab");
-  const panel = $("ai-panel");
-  if (view === "home") {
-    fab.hidden = false;
-  } else {
-    fab.hidden = true;
-    panel.classList.remove("open");
-    panel.setAttribute("aria-hidden", "true");
-  }
+  // 所有页面都显示 AI 按钮
+  $("ai-fab").hidden = false;
 }
 
 /* 页面跳转映射：关键词 -> 页面 view */

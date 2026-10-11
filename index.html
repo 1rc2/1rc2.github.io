@@ -372,6 +372,9 @@
   .ai-send{border:none;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer;display:grid;place-items:center;flex:none}
   .ai-send:disabled{opacity:.5;cursor:default}
   .ai-send svg{width:18px;height:18px}
+  .ai-jump-btn{display:inline-block;margin-top:8px;padding:5px 12px;background:rgba(37,99,235,.12);color:var(--accent);border:1px solid rgba(37,99,235,.3);border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s}
+  .ai-jump-btn:hover{background:rgba(37,99,235,.22);transform:translateX(2px)}
+  .ai-msg.bot .ai-jump-btn{display:block;margin-top:8px;width:fit-content}
   .ai-typing{display:inline-flex;gap:5px;align-items:center;padding:4px 0}
   .ai-typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:aitype 1.2s infinite}
   .ai-typing span:nth-child(2){animation-delay:.2s}
@@ -1165,11 +1168,18 @@ function aiBuildContext() {
     "- 下载慢时切换「加速下载」源",
     "- 页面数据缓存 " + (CONFIG.cacheTTL / 60000) + " 分钟，无需重复请求",
     "",
+    "【页面跳转能力】",
+    "本站有4个页面，你可以在回答中用 [跳转:页面名] 格式插入跳转按钮，用户点击即可跳转。",
+    "可用页面名：首页、网页、仓库、关于",
+    "示例：用户问\"有哪些网页项目\"，回答：\"本站有多个网页项目，你可以在网页页查看 [跳转:网页]\"",
+    "示例：用户问\"网站原理是什么\"，回答：\"网站原理详见关于页 [跳转:关于]\"",
+    "",
     "【回答规则】",
     "- 用简洁友好的中文回答",
     "- 优先回答与本站相关的问题（下载、版本、镜像、功能等）",
+    "- 推荐用户去某个页面时，务必用 [跳转:页面名] 插入跳转按钮",
     "- 若用户问编程/通用知识，可以回答但适当引导回本站主题",
-    "- 不确定具体版本号时，建议用户访问首页查看实时数据",
+    "- 不确定具体版本号时，建议用户访问首页查看实时数据 [跳转:首页]",
     "- 不要编造不存在的功能或应用"
   ].join("\n");
 }
@@ -1186,14 +1196,63 @@ function aiToggleFab(view) {
   }
 }
 
+/* 页面跳转映射：关键词 -> 页面 view */
+const AI_VIEW_MAP = {
+  "首页": "home", "主页": "home", "home": "home",
+  "网页": "pages", "网页页": "pages", "我的网页": "pages", "pages": "pages",
+  "仓库": "repos", "仓库页": "repos", "我的仓库": "repos", "repos": "repos",
+  "关于": "about", "关于页": "about", "关于本站": "about", "about": "about"
+};
+
+/* AI 跳转标记格式：[跳转:网页] -> 渲染为跳转按钮 */
+function aiRenderJumpBtn(view) {
+  const name = Object.entries(AI_VIEW_MAP).find(([, v]) => v === view);
+  const label = name ? name[0] : view;
+  const btn = document.createElement("button");
+  btn.className = "ai-jump-btn";
+  btn.textContent = "→ 跳转到" + label;
+  btn.onclick = () => {
+    switchView(view);
+    aiToggleFab(view);
+  };
+  return btn;
+}
+
 function aiAddMsg(role, text) {
   const body = $("ai-body");
   const div = document.createElement("div");
   div.className = "ai-msg " + role;
-  div.textContent = text;
+
+  // 解析 [跳转:xxx] 标记，渲染成跳转按钮
+  const parts = text.split(/(\[跳转:[^\]]+\])/g);
+  for (const part of parts) {
+    const m = part.match(/^\[跳转:([^\]]+)\]$/);
+    if (m) {
+      const view = AI_VIEW_MAP[m[1].trim()] || m[1].trim();
+      div.appendChild(aiRenderJumpBtn(view));
+    } else if (part) {
+      div.appendChild(document.createTextNode(part));
+    }
+  }
+  // 没匹配到标记时直接显示纯文本
+  if (div.childNodes.length === 0) div.textContent = text;
+
   body.appendChild(div);
   body.scrollTop = body.scrollHeight;
   return div;
+}
+
+/* 检测用户消息中的跳转关键词，命中则直接跳转 */
+function aiTryQuickJump(text) {
+  const t = text.toLowerCase();
+  for (const [kw, view] of Object.entries(AI_VIEW_MAP)) {
+    if (t.includes(kw.toLowerCase())) {
+      switchView(view);
+      aiToggleFab(view);
+      return kw;
+    }
+  }
+  return null;
 }
 
 function aiAddTyping() {
@@ -1293,6 +1352,16 @@ async function aiAsk() {
   if (!prompt) return;
   input.value = "";
   aiAddMsg("user", prompt);
+
+  // 关键词快速跳转（不依赖 AI，立即响应）
+  const kw = aiTryQuickJump(prompt);
+  if (kw) {
+    AI.history.push({ role: "user", content: prompt });
+    aiAddMsg("bot", "已为你跳转到「" + kw + "」页。如果需要其他帮助，随时告诉我！");
+    AI.history.push({ role: "assistant", content: "已为你跳转到「" + kw + "」页。" });
+    return;
+  }
+
   AI.history.push({ role: "user", content: prompt });
   if (AI.history.length > 10) AI.history = AI.history.slice(-10);
 

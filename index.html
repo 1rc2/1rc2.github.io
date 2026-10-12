@@ -264,6 +264,10 @@
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:24px;box-shadow:var(--shadow);
   }
+  #view-settings .about-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;box-shadow:var(--shadow);
+  }
   #view-about h2{font-size:18px;margin-bottom:14px}
   #view-about p{color:var(--muted);line-height:1.8;margin-bottom:12px;font-size:14.5px}
   #view-about .about-list{margin:16px 0;padding-left:20px;color:var(--muted);line-height:2;font-size:14px}
@@ -272,6 +276,7 @@
 
   /* 仓库页（仅查看） */
   #view-repos{display:none;padding:24px 0}
+  #view-settings{display:none;padding:24px 0}
   .repo-card{
     display:block;text-decoration:none;color:var(--ink);
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -480,6 +485,16 @@
     <div id="repos-list"></div>
   </section>
 
+  <!-- 设置页（预留，暂无内容） -->
+  <section id="view-settings" class="wrap" hidden>
+    <div class="section-title reveal" style="margin-top:8px">设置</div>
+    <div class="about-card reveal" style="text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:16px">⚙️</div>
+      <div style="font-size:16px;color:var(--muted)">暂无设置项</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px">后续功能将在此处展示</div>
+    </div>
+  </section>
+
   <!-- 网页页（简单标签，点击跳转 GitHub Pages） -->
   <section id="view-pages" class="wrap">
     <div class="section-title reveal" style="margin-top:8px">我的网页</div>
@@ -522,6 +537,10 @@
   <a class="nav-item" data-view="repos">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18"/><path d="M9 21V9"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
     <span>仓库</span>
+  </a>
+  <a class="nav-item" data-view="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>设置</span>
   </a>
   <a class="nav-item" data-view="about">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
@@ -1176,6 +1195,7 @@ function switchView(view) {
   const about = $("view-about");
   const repos = $("view-repos");
   const pages = $("view-pages");
+  const settings = $("view-settings");
   // 首页元素集合：hero、latest、history、topbar、footer
   const homeEls = [
     document.querySelector(".hero"),
@@ -1188,6 +1208,7 @@ function switchView(view) {
   about.style.display = (view === "about" ? "block" : "none");
   repos.style.display = (view === "repos" ? "block" : "none");
   pages.style.display = (view === "pages" ? "block" : "none");
+  settings.style.display = (view === "settings" ? "block" : "none");
   document.querySelectorAll(".nav-item").forEach(n => {
     n.classList.toggle("active", n.dataset.view === view);
   });
@@ -1295,7 +1316,8 @@ const AI_VIEW_MAP = {
   "首页": "home", "主页": "home", "home": "home",
   "网页": "pages", "网页页": "pages", "我的网页": "pages", "pages": "pages",
   "仓库": "repos", "仓库页": "repos", "我的仓库": "repos", "repos": "repos",
-  "关于": "about", "关于页": "about", "关于本站": "about", "about": "about"
+  "关于": "about", "关于页": "about", "关于本站": "about", "about": "about",
+  "设置": "settings", "设置页": "settings", "settings": "settings"
 };
 
 /* AI 跳转标记格式：[跳转:网页] -> 渲染为跳转按钮 */

@@ -3,10 +3,12 @@
 //
 // 环境变量：
 //   ADMIN_PASSWORD   必填，管理后台登录密码
-//   ALLOWED_ORIGIN   可选，允许的前端域名，默认 * （生产建议改为你自己的域名）
+//   ALLOWED_ORIGIN    可选，允许的前端域名，默认 * （生产建议改为你自己的域名）
 //   ADMIN_SESSION_TTL 可选，会话有效期（秒），默认 86400（1天）
 
 export const runtime = "nodejs";
+
+import crypto from "crypto";
 
 const corsHeaders = (origin) => ({
   "Access-Control-Allow-Origin": origin || "*",
@@ -14,33 +16,29 @@ const corsHeaders = (origin) => ({
   "Access-Control-Allow-Headers": "Content-Type"
 });
 
-// 简单的会话 token 生成：base64(时间戳.签名)
-// 签名用 ADMIN_PASSWORD 作为密钥，HMAC-SHA256
-async function makeToken(password, ttl) {
+// 会话 token：base64url(时间戳) + "." + base64url(HMAC-SHA256(时间戳, 密码))
+function makeToken(password, ttl) {
   const expireAt = Date.now() + ttl * 1000;
   const payload = String(expireAt);
-  const enc = new TextEncoder();
-  const keyData = enc.encode(password);
-  const key = await crypto.subtle.importKey(
-    "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  const sigB64 = Buffer.from(sig).toString("base64url");
-  return Buffer.from(payload).toString("base64url") + "." + sigB64;
+  const sig = crypto.createHmac("sha256", password).update(payload).digest("base64url");
+  return Buffer.from(payload).toString("base64url") + "." + sig;
 }
 
-async function verifyToken(token, password) {
+function verifyToken(token, password) {
   try {
     const [payloadB64, sigB64] = token.split(".");
     if (!payloadB64 || !sigB64) return false;
     const expireAt = parseInt(Buffer.from(payloadB64, "base64url").toString(), 10);
     if (!expireAt || expireAt < Date.now()) return false;
-    const enc = new TextEncoder();
-    const key = await crypto.subtle.importKey(
-      "raw", enc.encode(password), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]
-    );
-    const sig = Buffer.from(sigB64, "base64url");
-    return await crypto.subtle.verify("HMAC", key, sig, enc.encode(String(expireAt)));
+    const expected = crypto
+      .createHmac("sha256", password)
+      .update(String(expireAt))
+      .digest("base64url");
+    // 恒定时间比较，防止时序攻击
+    const a = Buffer.from(sigB64);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
   } catch (e) {
     return false;
   }
@@ -87,7 +85,7 @@ export default async function handler(req) {
       );
     }
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL) || 86400;
-    const token = await makeToken(password, ttl);
+    const token = makeToken(password, ttl);
     return new Response(
       JSON.stringify({ ok: true, token, expireIn: ttl }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
@@ -96,7 +94,7 @@ export default async function handler(req) {
 
   // 其他操作需要携带有效 token
   const token = body.token;
-  if (!token || !(await verifyToken(token, password))) {
+  if (!token || !verifyToken(token, password)) {
     return new Response(
       JSON.stringify({ error: "未登录或会话已过期" }),
       { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }

@@ -1011,11 +1011,35 @@ async function loadRepos() {
 }
 
 /* ---------- 网页列表（简单标签，复用 fetchRepos，跳转 GitHub Pages） ---------- */
+/* 网页中文名映射表（仓库名 → 中文显示名）
+   新增网页时在此添加映射，规则见 网页命名规则.md */
+const PAGE_NAME_MAP = {
+  "hjjk": "黄金行情监控",
+  "wuziqiszys": "黄金行情监控",   // 旧名兼容（已改名为 hjjk）
+  "daimabjq": "代码编辑器",
+  "hjjiankong": "代码编辑器",     // 旧名兼容（已改名为 daimabjq）
+  "hill-cipher": "密码学演示",
+  "mimasm4": "SM4加密工具"
+};
+
+/* 获取网页中文显示名：优先查映射表，其次用仓库描述，最后用仓库名 */
+function pageDisplayName(r) {
+  if (PAGE_NAME_MAP[r.name]) return PAGE_NAME_MAP[r.name];
+  if (r.description) {
+    // 取描述首句，去除 "APP"、"在线版" 等后缀，限制长度
+    let d = r.description.trim();
+    d = d.replace(/[（(].*?[)）]/g, "").replace(/\s*(APP|在线版|网页版|web)\s*$/i, "").trim();
+    if (d.length > 12) d = d.slice(0, 12);
+    if (d) return d;
+  }
+  return r.name;
+}
+
 function pagesUrl(r) { return "https://" + CONFIG.user + ".github.io/" + r.name + "/"; }
 function pageTag(r, i) {
   return '<a class="page-tag reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + pagesUrl(r) + '" target="_blank" rel="noopener">' +
     '<span class="pt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg></span>' +
-    '<span class="pt-text"><span class="pt-name">' + escapeHtml(r.name) + '</span>' +
+    '<span class="pt-text"><span class="pt-name">' + escapeHtml(pageDisplayName(r)) + '</span>' +
     '<span class="pt-url">' + escapeHtml(pagesUrl(r)) + '</span></span>' +
     '<span class="pt-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
   '</a>';

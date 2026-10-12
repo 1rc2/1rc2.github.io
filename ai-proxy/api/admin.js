@@ -6,9 +6,7 @@
 //   ALLOWED_ORIGIN    可选，允许的前端域名，默认 * （生产建议改为你自己的域名）
 //   ADMIN_SESSION_TTL 可选，会话有效期（秒），默认 86400（1天）
 
-export const runtime = "nodejs";
-
-import crypto from "crypto";
+const crypto = require("crypto");
 
 const corsHeaders = (origin) => ({
   "Access-Control-Allow-Origin": origin || "*",
@@ -26,16 +24,15 @@ function makeToken(password, ttl) {
 
 function verifyToken(token, password) {
   try {
-    const [payloadB64, sigB64] = token.split(".");
-    if (!payloadB64 || !sigB64) return false;
-    const expireAt = parseInt(Buffer.from(payloadB64, "base64url").toString(), 10);
+    const parts = token.split(".");
+    if (parts.length !== 2) return false;
+    const expireAt = parseInt(Buffer.from(parts[0], "base64url").toString(), 10);
     if (!expireAt || expireAt < Date.now()) return false;
     const expected = crypto
       .createHmac("sha256", password)
       .update(String(expireAt))
       .digest("base64url");
-    // 恒定时间比较，防止时序攻击
-    const a = Buffer.from(sigB64);
+    const a = Buffer.from(parts[1]);
     const b = Buffer.from(expected);
     if (a.length !== b.length) return false;
     return crypto.timingSafeEqual(a, b);
@@ -44,73 +41,52 @@ function verifyToken(token, password) {
   }
 }
 
-export default async function handler(req) {
+module.exports = async (req, res) => {
   const allow = process.env.ALLOWED_ORIGIN || "*";
   const password = process.env.ADMIN_PASSWORD;
 
   // CORS 预检
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders(allow) });
+    res.setHeader("Access-Control-Allow-Origin", allow);
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(204).end();
   }
+
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", allow);
+
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "仅支持 POST" }),
-      { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-    );
+    return res.status(405).json({ error: "仅支持 POST" });
   }
+
   if (!password) {
-    return new Response(
-      JSON.stringify({ error: "服务器未配置 ADMIN_PASSWORD 环境变量" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-    );
+    return res.status(500).json({ error: "服务器未配置 ADMIN_PASSWORD 环境变量" });
   }
 
-  let body;
-  try { body = await req.json(); }
-  catch (e) {
-    return new Response(
-      JSON.stringify({ error: "请求体不是合法 JSON" }),
-      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-    );
-  }
-
+  const body = req.body || {};
   const action = body.action || "login";
 
   // 登录：验证密码，返回会话 token
   if (action === "login") {
     if (body.password !== password) {
-      return new Response(
-        JSON.stringify({ error: "密码错误" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-      );
+      return res.status(401).json({ error: "密码错误" });
     }
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL) || 86400;
     const token = makeToken(password, ttl);
-    return new Response(
-      JSON.stringify({ ok: true, token, expireIn: ttl }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-    );
+    return res.status(200).json({ ok: true, token, expireIn: ttl });
   }
 
   // 其他操作需要携带有效 token
   const token = body.token;
   if (!token || !verifyToken(token, password)) {
-    return new Response(
-      JSON.stringify({ error: "未登录或会话已过期" }),
-      { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-    );
+    return res.status(401).json({ error: "未登录或会话已过期" });
   }
 
-  // 校验 token（无需返回数据，仅确认有效）
+  // 校验 token
   if (action === "verify") {
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-    );
+    return res.status(200).json({ ok: true });
   }
 
-  return new Response(
-    JSON.stringify({ error: "未知操作: " + action }),
-    { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders(allow) } }
-  );
-}
+  return res.status(400).json({ error: "未知操作: " + action });
+};

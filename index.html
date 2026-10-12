@@ -268,6 +268,38 @@
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:24px;box-shadow:var(--shadow);
   }
+  .admin-login{display:flex;flex-direction:column;gap:12px;max-width:360px;margin:0 auto}
+  .admin-login h3{font-size:16px;margin:0 0 4px}
+  .admin-login .hint{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .admin-login input{
+    border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:14px;
+    background:#fdfcfb;outline:none;font-family:inherit;transition:border-color .2s;
+  }
+  .admin-login input:focus{border-color:var(--accent)}
+  .admin-login button{
+    border:none;background:var(--accent);color:#fff;border-radius:10px;
+    padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+    transition:background .2s,opacity .2s;
+  }
+  .admin-login button:hover{background:var(--accent-deep)}
+  .admin-login button:disabled{opacity:.5;cursor:default}
+  .admin-err{color:var(--warn);font-size:13px;min-height:18px}
+  .admin-panel h3{font-size:16px;margin:0 0 16px;display:flex;align-items:center;gap:8px}
+  .admin-panel .admin-row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 0;border-bottom:1px solid var(--line);
+  }
+  .admin-panel .admin-row:last-child{border-bottom:none}
+  .admin-panel .admin-row span{font-size:14px}
+  .admin-panel .admin-row .muted{color:var(--muted);font-size:13px}
+  .admin-btn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;
+    transition:color .2s,border-color .2s,background .2s;white-space:nowrap;
+  }
+  .admin-btn:hover{color:var(--accent);border-color:var(--accent)}
+  .admin-btn.danger:hover{color:#d33;border-color:#d33;background:rgba(211,51,51,.05)}
+  .admin-session{font-size:12px;color:var(--muted);margin-top:12px}
   #view-about h2{font-size:18px;margin-bottom:14px}
   #view-about p{color:var(--muted);line-height:1.8;margin-bottom:12px;font-size:14.5px}
   #view-about .about-list{margin:16px 0;padding-left:20px;color:var(--muted);line-height:2;font-size:14px}
@@ -485,14 +517,10 @@
     <div id="repos-list"></div>
   </section>
 
-  <!-- 设置页（预留，暂无内容） -->
+  <!-- 设置页 -->
   <section id="view-settings" class="wrap" hidden>
     <div class="section-title reveal" style="margin-top:8px">设置</div>
-    <div class="about-card reveal" style="text-align:center;padding:48px 24px">
-      <div style="font-size:48px;margin-bottom:16px">⚙️</div>
-      <div style="font-size:16px;color:var(--muted)">暂无设置项</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px">后续功能将在此处展示</div>
-    </div>
+    <div id="settings-list"></div>
   </section>
 
   <!-- 网页页（简单标签，点击跳转 GitHub Pages） -->
@@ -596,6 +624,14 @@ const CONFIG = {
     fallbackUrl: "https://text.pollinations.ai/openai",
     fallbackModel: "openai",
     timeout: 30000
+  },
+
+  /* 管理后台配置
+     密码保存在 Vercel 环境变量 ADMIN_PASSWORD 中，前端不暴露。
+     部署步骤同 ai-proxy，在同一 Vercel 项目里添加 api/admin.js 即可。
+     adminProxyUrl 填 /api/admin 的完整地址。 */
+  admin: {
+    proxyUrl: "https://ai-proxy-fuyi.vercel.app/api/admin"
   }
 };
 /* ============================================================ */
@@ -992,6 +1028,164 @@ function showToast(msg) {
   if (__toastTimer) clearTimeout(__toastTimer);
   __toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
 }
+
+/* ---------- 设置页 / 管理后台 ---------- */
+const ADMIN_STORAGE_KEY = "admin-token";
+
+// 读取本地会话 token
+function adminGetToken() {
+  try { return localStorage.getItem(ADMIN_STORAGE_KEY) || ""; } catch (e) { return ""; }
+}
+function adminSetToken(token) {
+  try { localStorage.setItem(ADMIN_STORAGE_KEY, token); } catch (e) {}
+}
+function adminClearToken() {
+  try { localStorage.removeItem(ADMIN_STORAGE_KEY); } catch (e) {}
+}
+
+// 调用管理代理接口
+async function adminCall(action, extra) {
+  const url = CONFIG.admin && CONFIG.admin.proxyUrl;
+  if (!url) throw new Error("未配置管理代理地址");
+  const body = Object.assign({ action }, extra || {});
+  const resp = await fetchWithTimeout(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  }, 15000);
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(data.error || ("HTTP " + resp.status));
+  return data;
+}
+
+// 登录
+async function adminLogin(password) {
+  const data = await adminCall("login", { password });
+  adminSetToken(data.token);
+  return data;
+}
+
+// 登出
+function adminLogout() {
+  adminClearToken();
+  loadSettings();
+  showToast("已退出登录");
+}
+
+// 验证本地 token 是否有效（异步，失败则清除）
+async function adminVerify() {
+  const token = adminGetToken();
+  if (!token) return false;
+  try {
+    await adminCall("verify", { token });
+    return true;
+  } catch (e) {
+    adminClearToken();
+    return false;
+  }
+}
+
+// 渲染设置页
+async function loadSettings() {
+  const el = $("settings-list");
+  if (!el) return;
+  const token = adminGetToken();
+  if (token) {
+    // 有 token，先验证
+    el.innerHTML = '<div class="about-card reveal" style="text-align:center;padding:32px">验证中…</div>';
+    const ok = await adminVerify();
+    if (ok) { renderAdminPanel(el); return; }
+  }
+  renderAdminLogin(el);
+}
+
+function renderAdminLogin(el) {
+  el.innerHTML =
+    '<div class="about-card reveal">' +
+      '<form class="admin-login" onsubmit="adminLoginSubmit(event)">' +
+        '<h3>🔒 管理登录</h3>' +
+        '<div class="hint">密码保存在服务器，前端不存储</div>' +
+        '<input id="admin-pwd" type="password" placeholder="请输入管理密码" autocomplete="current-password">' +
+        '<div class="admin-err" id="admin-err"></div>' +
+        '<button type="submit" id="admin-login-btn">登录</button>' +
+      '</form>' +
+    '</div>';
+}
+
+async function adminLoginSubmit(e) {
+  e.preventDefault();
+  const pwd = $("admin-pwd").value;
+  const errEl = $("admin-err");
+  const btn = $("admin-login-btn");
+  if (!pwd) { errEl.textContent = "请输入密码"; return; }
+  errEl.textContent = "";
+  btn.disabled = true; btn.textContent = "登录中…";
+  try {
+    await adminLogin(pwd);
+    showToast("登录成功");
+    loadSettings();
+  } catch (err) {
+    errEl.textContent = err.message || "登录失败";
+    btn.disabled = false; btn.textContent = "登录";
+  }
+}
+
+function renderAdminPanel(el) {
+  // 统计本地缓存大小
+  let cacheSize = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      cacheSize += (localStorage.getItem(k) || "").length;
+    }
+  } catch (e) {}
+  const sizeKB = (cacheSize / 1024).toFixed(1);
+
+  el.innerHTML =
+    '<div class="about-card reveal admin-panel">' +
+      '<h3>🛠️ 管理控制台</h3>' +
+      '<div class="admin-row">' +
+        '<span>本地缓存</span>' +
+        '<span class="muted">' + sizeKB + ' KB</span>' +
+      '</div>' +
+      '<div class="admin-row">' +
+        '<span>清除所有本地缓存</span>' +
+        '<button class="admin-btn danger" onclick="adminClearCache()">清除</button>' +
+      '</div>' +
+      '<div class="admin-row">' +
+        '<span>清除仓库列表缓存</span>' +
+        '<button class="admin-btn" onclick="adminClearReposCache()">清除</button>' +
+      '</div>' +
+      '<div class="admin-row">' +
+        '<span>清除网页列表缓存</span>' +
+        '<button class="admin-btn" onclick="adminClearPagesCache()">清除</button>' +
+      '</div>' +
+      '<div class="admin-row">' +
+        '<span>退出登录</span>' +
+        '<button class="admin-btn danger" onclick="adminLogout()">退出</button>' +
+      '</div>' +
+      '<div class="admin-session">会话有效期由服务器控制，关闭浏览器后仍保持登录</div>' +
+    '</div>';
+}
+
+// 管理操作：清除所有缓存（保留登录 token）
+function adminClearCache() {
+  if (!confirm("确定清除所有本地缓存？包括仓库、网页、下载源等所有数据。")) return;
+  const token = adminGetToken();
+  try { localStorage.clear(); } catch (e) {}
+  if (token) adminSetToken(token);
+  showToast("已清除所有缓存");
+  loadSettings();
+}
+function adminClearReposCache() {
+  try { localStorage.removeItem("gh-repos-cache"); } catch (e) {}
+  showToast("已清除仓库缓存");
+}
+function adminClearPagesCache() {
+  try { sessionStorage.removeItem("gh-pages-cache"); } catch (e) {}
+  showToast("已清除网页缓存");
+}
+
 function reposSkeletonHTML() {
   return '<div class="repo-card skeleton"><div class="sk-line" style="width:40%"></div><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:60%"></div></div>' +
          '<div class="repo-card skeleton"><div class="sk-line" style="width:50%"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:55%"></div></div>';
@@ -1215,6 +1409,7 @@ function switchView(view) {
   try { sessionStorage.setItem("gh-view", view); } catch (e) {}
   if (view === "repos") loadRepos();
   if (view === "pages") loadPages();
+  if (view === "settings") loadSettings();
   window.scrollTo(0, 0);
 }
 function initBottomNav() {

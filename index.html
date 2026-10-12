@@ -1048,13 +1048,20 @@ async function adminCall(action, extra) {
   const url = CONFIG.admin && CONFIG.admin.proxyUrl;
   if (!url) throw new Error("未配置管理代理地址");
   const body = Object.assign({ action }, extra || {});
-  const resp = await fetchWithTimeout(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  }, 30000);
+  let resp;
+  try {
+    resp = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    }, 30000);
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("请求超时，请检查网络后重试");
+    if (e.message && /fetch|network|Failed/i.test(e.message)) throw new Error("网络连接失败，请稍后重试");
+    throw new Error("请求失败：" + (e.message || "未知错误"));
+  }
   const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(data.error || ("HTTP " + resp.status));
+  if (!resp.ok) throw new Error(data.error || ("服务器错误 (HTTP " + resp.status + ")"));
   return data;
 }
 

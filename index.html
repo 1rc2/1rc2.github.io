@@ -594,9 +594,7 @@ const CONFIG = {
   /* 应用列表：每个应用对应一个仓库的 Releases，可任意增删。
      后续新增应用：复制下面一项，改 repo（GitHub 仓库名）、
      appName（显示名）、color（主题色）即可，顶部切换条自动出现。 */
-  apps: [
-    { repo: "wuziqiszys", appName: "黄金行情监控", color: "#d4a017" }
-  ],
+  apps: [],
 
   releaseCount: 3,                 // 每个应用展示的 Release 数量（含最新版），即"最近三个"
   cacheTTL: 10 * 60 * 1000,        // 本地缓存 10 分钟，重复访问免请求、更快

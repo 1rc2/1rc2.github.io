@@ -910,13 +910,17 @@ const REPO_LANG_COLORS = {
 };
 function langColor(lang) { return REPO_LANG_COLORS[lang] || "#6b6258"; }
 function isIoRepo(r) { return r.name && r.name.endsWith(".github.io"); }
+/* 隐藏名单：这些仓库不在「仓库」「网页」页展示（黄金相关，已下线）
+   新增隐藏：把仓库名加进数组即可 */
+const HIDDEN_REPOS = ["hjjk", "wuziqiszys"];
+function isHiddenRepo(r) { return r.name && HIDDEN_REPOS.indexOf(r.name) !== -1; }
 
 function readReposCache() {
   try {
     const raw = localStorage.getItem("gh-repos");
     if (!raw) return null;
     const c = JSON.parse(raw);
-    if (Date.now() - c.ts < CONFIG.cacheTTL) return c.data;
+    if (Date.now() - c.ts < CONFIG.cacheTTL) return c.data.filter(r => !isHiddenRepo(r));
   } catch (e) {}
   return null;
 }
@@ -945,7 +949,7 @@ async function fetchRepos() {
   if (!res || !res.ok) throw (err || new Error("HTTP " + (res ? res.status : "未知")));
   const list = await res.json();
   return list
-    .filter(r => !isIoRepo(r))                                  // 排除 io 仓库
+    .filter(r => !isIoRepo(r) && !isHiddenRepo(r))               // 排除 io 仓库与隐藏仓库
     .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
 }
 function repoCard(r, i) {
@@ -1234,8 +1238,6 @@ async function loadRepos() {
 /* 网页中文名映射表（仓库名 → 中文显示名）
    新增网页时在此添加映射，规则见 网页命名规则.md */
 const PAGE_NAME_MAP = {
-  "hjjk": "黄金行情监控",
-  "wuziqiszys": "黄金行情监控",   // 旧名兼容（已改名为 hjjk）
   "daimabjq": "代码编辑器",
   "hjjiankong": "代码编辑器",     // 旧名兼容（已改名为 daimabjq）
   "hill-cipher": "密码学演示",

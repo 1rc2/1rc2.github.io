@@ -612,8 +612,18 @@ const CONFIG = {
        3. 把代理 URL 填到下方 proxyUrl，apiKey 留空
      详细步骤见 ai-proxy/README.md
      未配置时自动降级：Pollinations → 本地模型 */
+  /* Vercel 代理候选域名：Vercel 项目被重建或改域名后旧地址会失效，
+     前端会按顺序探测，自动选用第一个可用的（结果缓存 1 小时）。 */
+  proxyBases: [
+    "https://ai-proxy-fuyi3.vercel.app",
+    "https://ai-proxy-theta-ten.vercel.app",
+    "https://ai-proxy.vercel.app",
+    "https://ai-proxy-j2ra.vercel.app",
+    "https://ai-proxy-f37l.vercel.app"
+  ],
+
   ai: {
-    proxyUrl: "https://ai-proxy-theta-ten.vercel.app/api/chat",
+    proxyUrl: "https://ai-proxy-fuyi3.vercel.app/api/chat",
     apiKey: "",                                    // 直连模式（不安全，会暴露 key，不推荐）
     endpoint: "https://api.deepseek.com/v1/chat/completions",
     model: "deepseek-chat",
@@ -628,7 +638,7 @@ const CONFIG = {
      部署步骤同 ai-proxy，在同一 Vercel 项目里添加 api/admin.js 即可。
      adminProxyUrl 填 /api/admin 的完整地址。 */
   admin: {
-    proxyUrl: "https://ai-proxy-theta-ten.vercel.app/api/admin"
+    proxyUrl: "https://ai-proxy-fuyi3.vercel.app/api/admin"
   }
 };
 /* ============================================================ */
@@ -1044,9 +1054,41 @@ function adminClearToken() {
   try { localStorage.removeItem(ADMIN_STORAGE_KEY); } catch (e) {}
 }
 
+/* 探测某个域名是否部署了管理接口（返回 JSON 即视为可用，HTML 404 则不可用） */
+async function probeAdmin(base) {
+  try {
+    const r = await fetchWithTimeout(base + "/api/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "verify", token: "__probe__" })
+    }, 8000);
+    const ct = r.headers.get("content-type") || "";
+    return ct.indexOf("application/json") !== -1;
+  } catch (e) { return false; }
+}
+
+/* 自动探测可用的 Vercel 代理域名（并发探测，取第一个可用的），结果缓存 1 小时 */
+let PROXY_BASE = null;
+async function resolveProxyBase() {
+  if (PROXY_BASE) return PROXY_BASE;
+  try {
+    const c = JSON.parse(localStorage.getItem("proxy-base") || "null");
+    if (c && c.base && Date.now() - c.ts < 3600000) { PROXY_BASE = c.base; return c.base; }
+  } catch (e) {}
+  const bases = CONFIG.proxyBases || [];
+  const results = await Promise.all(bases.map(b => probeAdmin(b).then(ok => (ok ? b : null))));
+  const found = results.find(Boolean) || null;
+  if (found) {
+    PROXY_BASE = found;
+    try { localStorage.setItem("proxy-base", JSON.stringify({ ts: Date.now(), base: found })); } catch (e) {}
+  }
+  return found;
+}
+
 // 调用管理代理接口
 async function adminCall(action, extra) {
-  const url = CONFIG.admin && CONFIG.admin.proxyUrl;
+  const base = await resolveProxyBase();
+  const url = base ? base + "/api/admin" : (CONFIG.admin && CONFIG.admin.proxyUrl);
   if (!url) throw new Error("未配置管理代理地址");
   const body = Object.assign({ action }, extra || {});
   let resp;
@@ -1607,7 +1649,11 @@ async function aiDeepSeek(prompt) {
     { role: "user", content: prompt }
   ];
   const useProxy = !!cfg.proxyUrl;
-  const url = useProxy ? cfg.proxyUrl : cfg.endpoint;
+  let url = cfg.endpoint;
+  if (useProxy) {
+    const base = await resolveProxyBase();
+    url = base ? base + "/api/chat" : cfg.proxyUrl;
+  }
   const headers = { "Content-Type": "application/json" };
   if (!useProxy && cfg.apiKey) headers["Authorization"] = "Bearer " + cfg.apiKey;
   const body = useProxy

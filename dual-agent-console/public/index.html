@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>双 Agent 控制台 · Trae × Qoder</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --panel: #ffffff;
+    --text: #171717;
+    --muted: #6b6b74;
+    --border: rgba(23, 23, 23, 0.12);
+    --brand: #4b3fe3;
+    --teal: #0d9488;
+    --term-bg: #151518;
+    --term-text: #d8d8de;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.6 "SF Pro Text", "PingFang SC", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header.top {
+    padding: 16px 24px 0;
+  }
+  header.top h1 { font-size: 18px; margin: 0; }
+  header.top p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  main { padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .controls {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 72px;
+    resize: vertical;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font: inherit;
+  }
+  textarea:focus { outline: 2px solid var(--brand); outline-offset: -1px; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  select, input[type="number"] {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+    background: var(--panel);
+  }
+  input[type="number"] { width: 64px; }
+  button {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 18px;
+    font: inherit;
+    cursor: pointer;
+    background: var(--panel);
+  }
+  button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  #roundsWrap { color: var(--muted); display: none; align-items: center; gap: 6px; }
+  #roundsWrap.show { display: inline-flex; }
+  #status { color: var(--muted); font-size: 13px; min-height: 20px; }
+  .panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 860px) { .panes { grid-template-columns: 1fr; } }
+  .pane {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .pane > header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 999px; }
+  .dot.trae { background: var(--brand); }
+  .dot.qoder { background: var(--teal); }
+  .chip {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 10px;
+  }
+  .chip.running { color: var(--brand); border-color: var(--brand); }
+  pre {
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--term-bg);
+    color: var(--term-text);
+    font: 12.5px/1.7 "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    height: 420px;
+    overflow-y: auto;
+  }
+  .sep { color: #7c7cf0; }
+  .err { color: #f87454; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>双 Agent 控制台</h1>
+  <p>Trae CLI × Qoder CLI · 同一任务交给两个 AI，或让它们接力互审</p>
+</header>
+<main>
+  <section class="controls">
+    <textarea id="task" placeholder="描述要交给它们的任务，例如：用 Python 写一个待办事项 CLI，并补上单元测试"></textarea>
+    <div class="row">
+      <select id="mode">
+        <option value="parallel">并行对比</option>
+        <option value="relay">接力协作</option>
+      </select>
+      <label id="roundsWrap">轮数 <input id="rounds" type="number" min="1" max="5" value="2"></label>
+      <button id="runBtn" class="primary">开始</button>
+      <button id="stopBtn" disabled>停止</button>
+    </div>
+    <div id="status"></div>
+  </section>
+  <section class="panes">
+    <div class="pane">
+      <header><span class="dot trae"></span>Trae<span class="chip" id="chip-trae">空闲</span></header>
+      <pre id="log-trae"></pre>
+    </div>
+    <div class="pane">
+      <header><span class="dot qoder"></span>Qoder<span class="chip" id="chip-qoder">空闲</span></header>
+      <pre id="log-qoder"></pre>
+    </div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const modeSel = $('mode');
+const roundsWrap = $('roundsWrap');
+const runBtn = $('runBtn');
+const stopBtn = $('stopBtn');
+let abort = null;
+
+modeSel.addEventListener('change', () => {
+  roundsWrap.classList.toggle('show', modeSel.value === 'relay');
+});
+
+function append(agent, text, cls) {
+  const log = $('log-' + agent);
+  const span = document.createElement('span');
+  if (cls) span.className = cls;
+  span.textContent = text;
+  log.appendChild(span);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setChip(agent, running) {
+  const chip = $('chip-' + agent);
+  chip.textContent = running ? '运行中' : '空闲';
+  chip.classList.toggle('running', running);
+}
+
+function setRunning(running) {
+  runBtn.disabled = running;
+  stopBtn.disabled = !running;
+  if (!running) { setChip('trae', false); setChip('qoder', false); }
+}
+
+function handle(ev) {
+  switch (ev.type) {
+    case 'info':
+      $('status').textContent = ev.text;
+      break;
+    case 'step':
+      setChip(ev.agent, true);
+      append(ev.agent, '\n── ' + ev.label + ' ──\n', 'sep');
+      break;
+    case 'out':
+      append(ev.agent, ev.text);
+      break;
+    case 'error':
+      append(ev.agent, '[错误] ' + ev.text + '\n', 'err');
+      setChip(ev.agent, false);
+      break;
+    case 'done':
+      $('status').textContent = ev.text || '结束';
+      setRunning(false);
+      break;
+  }
+}
+
+runBtn.addEventListener('click', async () => {
+  const task = $('task').value.trim();
+  if (!task) { $('status').textContent = '请先填写任务'; return; }
+  $('log-trae').textContent = '';
+  $('log-qoder').textContent = '';
+  setRunning(true);
+  abort = new AbortController();
+  try {
+    const resp = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task, mode: modeSel.value, maxRounds: Number($('rounds').value) || 2 }),
+      signal: abort.signal,
+    });
+    if (!resp.ok || !resp.body) throw new Error('请求失败：HTTP ' + resp.status);
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, i);
+        buf = buf.slice(i + 2);
+        const line = chunk.split('\n').find(l => l.startsWith('data: '));
+        if (line) {
+          try { handle(JSON.parse(line.slice(6))); } catch { /* 忽略坏帧 */ }
+        }
+      }
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') $('status').textContent = '连接中断：' + e.message;
+    setRunning(false);
+  }
+});
+
+stopBtn.addEventListener('click', () => { if (abort) abort.abort(); });
+</script>
+</body>
+</html>

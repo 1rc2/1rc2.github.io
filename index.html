@@ -324,10 +324,9 @@
   }
   .page-tag .pt-icon svg{width:16px;height:16px}
   .page-tag .pt-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-  .page-tag .pt-name{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;min-width:0}
-  .page-tag .pt-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .page-tag .pt-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .page-tag .pt-repo{
-    flex:none;max-width:52%;font-size:10.5px;font-weight:500;color:var(--muted);
+    align-self:flex-start;max-width:100%;font-size:11px;font-weight:500;color:var(--muted);
     background:#f3efe9;border:1px solid var(--line);border-radius:999px;padding:1px 7px;
     font-family:ui-monospace,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
@@ -1092,7 +1091,8 @@ const PAGE_NAME_MAP = {
   "daimabjq": "代码编辑器",
   "hjjiankong": "代码编辑器",     // 旧名兼容（已改名为 daimabjq）
   "hill-cipher": "密码学演示",
-  "mimasm4": "SM4加密工具"
+  "mimasm4": "SM4加密工具",
+  "wuziqi_szys": "六级听力训练"
 };
 
 /* 获取网页中文显示名：优先查映射表，其次用仓库描述，最后用仓库名 */
@@ -1116,8 +1116,8 @@ function pageTag(r, i) {
     : '';
   return '<a class="page-tag reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + pagesUrl(r) + '" target="_blank" rel="noopener">' +
     '<span class="pt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg></span>' +
-    '<span class="pt-text"><span class="pt-name"><span class="pt-title">' + escapeHtml(display) + '</span>' +
-    repoBadge + '</span>' +
+    '<span class="pt-text"><span class="pt-name">' + escapeHtml(display) + '</span>' +
+    repoBadge +
     '<span class="pt-url">' + escapeHtml(pagesUrl(r)) + '</span></span>' +
     '<span class="pt-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
   '</a>';

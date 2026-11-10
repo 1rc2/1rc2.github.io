@@ -1110,10 +1110,14 @@ function pageDisplayName(r) {
 
 function pagesUrl(r) { return "https://" + CONFIG.user + ".github.io/" + r.name + "/"; }
 function pageTag(r, i) {
+  const display = pageDisplayName(r);
+  const repoBadge = (display !== r.name)
+    ? '<span class="pt-repo" title="仓库名">' + escapeHtml(r.name) + '</span>'
+    : '';
   return '<a class="page-tag reveal" style="animation-delay:' + (i * 60) + 'ms" href="' + pagesUrl(r) + '" target="_blank" rel="noopener">' +
     '<span class="pt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg></span>' +
-    '<span class="pt-text"><span class="pt-name"><span class="pt-title">' + escapeHtml(pageDisplayName(r)) + '</span>' +
-    '<span class="pt-repo" title="仓库名">' + escapeHtml(r.name) + '</span></span>' +
+    '<span class="pt-text"><span class="pt-name"><span class="pt-title">' + escapeHtml(display) + '</span>' +
+    repoBadge + '</span>' +
     '<span class="pt-url">' + escapeHtml(pagesUrl(r)) + '</span></span>' +
     '<span class="pt-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>' +
   '</a>';

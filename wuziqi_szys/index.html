@@ -5,11 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>六级听力训练 · 浏览器本地</title>
 
-<!-- WaveSurfer.js -->
-<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-
-<!-- Transformers.js (Whisper) -->
-<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
+<script>
+/* WaveSurfer v7 与 Transformers.js v2 都只提供 ESM 包，
+   用经典 script 标签加载会直接语法报错，因此这里用动态 import() 拿命名空间。 */
+window.libsReady = (async function(){
+  try{
+    const [ws, tf] = await Promise.all([
+      import('https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/wavesurfer.js'),
+      import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2')
+    ]);
+    window.WaveSurfer = ws.default;
+    window.transformers = tf;
+    return true;
+  }catch(err){
+    window.__libsError = err;
+    console.error('CDN 依赖加载失败:', err);
+    return false;
+  }
+})();
+</script>
 
 <style>
 :root{
@@ -631,7 +645,12 @@ $('loadRssBtn').addEventListener('click', loadRss);
 /* =========================================================
    WaveSurfer
    ========================================================= */
-function initWaveSurfer(){
+async function initWaveSurfer(){
+  await window.libsReady;
+  if(!window.WaveSurfer){
+    showStatus('波形库加载失败，请检查网络后刷新', 'error');
+    return;
+  }
   if(state.wavesurfer){ try{ state.wavesurfer.destroy(); }catch(e){} }
   state.wavesurfer = WaveSurfer.create({
     container: '#waveform',
@@ -740,14 +759,19 @@ async function loadWhisper(){
   showLoading('加载 Whisper 模型中...', '首次使用需要下载约 70MB，请耐心等待');
   showStatus('加载 Whisper 模型...');
   try{
+    await window.libsReady;
+    if(!window.transformers){ throw new Error('Transformers.js 未加载，请检查网络'); }
     const { pipeline, env } = window.transformers;
     // CRITICAL: single-thread WASM - avoid SharedArrayBuffer / cross-origin header issues on GitHub Pages
     env.allowLocalModels = false;
     env.useBrowserCache = true;
-    // force WASM backend (not WebGPU) for maximum compatibility
-    env.backends = ['onnxruntime-web'];
-    // opt out of any multi-threading
-    try{ env.wasm = env.wasm || {}; env.wasm.numThreads = 1; }catch(e){}
+    // 单线程：必须在 onnx 后端上设置，之前写成 env.backends = [...] 是无效的
+    try{
+      if(!env.backends.onnx) env.backends.onnx = {};
+      if(!env.backends.onnx.wasm) env.backends.onnx.wasm = {};
+      env.backends.onnx.wasm.numThreads = 1;
+      env.backends.onnx.wasm.proxy = false;
+    }catch(e){ console.warn('设置单线程失败', e); }
 
     state.pipeline = await pipeline('automatic-speech-recognition', 'Xenova/whisper-base', {
       quantized: true,
@@ -771,10 +795,16 @@ async function runTranscribe(){
     showLoading('Whisper 转写中...', '音频越长耗时越久，请耐心等待');
     showStatus('正在转写...');
 
-    // Convert blob to Float32Array waveform expected by transformers.js pipeline
-    const audioBuffer = await state.audioBlob.arrayBuffer();
-    const { AutomaticSpeechRecognitionPipeline } = await window.transformers;
-    const result = await state.pipeline(audioBuffer, {
+    // Whisper 需要 16kHz 单声道 Float32Array，不能直接喂 ArrayBuffer
+    const tf = window.transformers;
+    const tmpUrl = URL.createObjectURL(state.audioBlob);
+    let waveform;
+    try{
+      waveform = await tf.read_audio(tmpUrl, 16000);
+    }finally{
+      URL.revokeObjectURL(tmpUrl);
+    }
+    const result = await state.pipeline(waveform, {
       language: 'english',
       task: 'transcribe',
       return_timestamps: true,
